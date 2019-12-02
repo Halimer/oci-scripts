@@ -1,0 +1,230 @@
+
+############################################################
+#                        showoci.py                        #
+############################################################
+Authentication : Config File
+Config File    : ~/.oci/config
+Config Profile : DEFAULT
+Version        : 19.11.19
+Date/Time      : 2019-11-25 19:36:40
+Comand Line    : -ani -sjf /Users/hammer/Documents/GitHub/oci_scripts/show_oci/report/20191125_showoci_report.json.txt -csv /Users/hammer/Documents/GitHub/oci_scripts/show_oci/report/csv/showoci_report
+OCI SDK Ver    : 2.6.5
+
+
+############################################################
+#                 Load OCI data to Memory                  #
+############################################################
+Guide: '.' Compartment, '+' VCN, '-' Subnets, 'a' - auth/notfound
+
+Identity...
+--> Tenancy                  <--  (1) - 00:00:01
+--> Compartments             <--  (22) - 00:00:00
+
+Announcements...
+--> Announcement Items       <-- . (15) - 00:00:00
+
+
+##############################
+#    Region us-ashburn-1     #
+##############################
+Identity...
+--> Availability Domains     <--  (3) - 00:00:00
+
+Network...
+--> Virtual Cloud Networks   <-- ...................... (38) - 00:00:02
+--> Subnets                  <-- ++++++++++++++++++++++++++++++++++++++ (110) - 00:04:21
+--> Network Security Groups  <-- ...................... (2) - 00:00:01
+--> Service Gateways         <-- ...................... (2) - 00:00:05
+--> NAT Gateways             <-- ...................... (5) - 00:00:01
+--> Dynamic Routing GWs      <-- ...................... (4) - 00:00:01
+--> Dynamic Routing GW Attch <-- ...................... (3) - 00:00:02
+--> Customer Prem Equipments <-- ...................... (3) - 00:00:02
+--> IPSEC tunnels            <-- ...................... (1) - 00:00:01
+--> Remote Peer Conns        <-- ...................... (0) - 00:00:03
+--> Virtual Circuits         <-- ...................... (0) - 00:00:01
+--> Internet Gateways        <-- ++++++a++a+a+a+a+a++++++++++++++++++++++++++ (34) - 00:00:13
+--> Local Peer GWs           <-- ++++++++++++++++++++++++++++++++++++++ (1) - 00:00:41
+--> Security Lists           <-- ++++++++++++++++++++++++++++++++++++++ (48) - 00:03:55
+--> DHCP Options             <-- ++++++++++++++++++++++++++++++++++++++ (38) - 00:05:32
+--> Route Tables             <-- ++++++++++++++++++++++++++++++++++++++ (46) - 00:04:27
+--> Routed Private IPs       <-- aa (0) - 00:00:00
+
+Compute...
+--> Instances                <-- ...................... (68) - 00:00:12
+--> Images                   <-- ...................... (6) - 00:00:05
+--> Boot Volumes Attached    <-- ...................... (69) - 00:00:07
+--> Volumes Attached         <-- ...................... (15) - 00:00:03
+--> Vnics Attached           <-- ...................... (68) - 00:00:20
+--> Instance Configurations  <-- ...................... (2) - 00:00:02
+--> Instance Pools           <-- ...................... (0) - 00:00:02
+--> Autoscaling              <-- ...................... (0) - 00:00:03
+
+Block Storage...
+--> Block Volume Groups      <-- ...................... (0) - 00:00:02
+--> Boot Volumes             <-- ...................... (84) - 00:00:16
+--> Boot Volumes Backups     <-- ...................... (14) - 00:00:02
+--> Block Volumes            <-- ...................... (22) - 00:00:04
+--> Block Volumes Backups    <--  (18) - 00:00:02
+
+Database...
+--> DB Systems               <-- ...................... (6) - 00:00:26
+--> Autonomous Databases     <-- ...................... (14) - 00:00:23
+
+Load Balancer...
+--> Load Balancers           <-- ...................... (3) - 00:00:03
+--> Backend Sets             <-- LLL (4) - 00:00:01
+
+Object Storage...
+--> Buckets                  <-- ...................... (14) - 00:00:04
+
+File Storage...
+--> File Systems             <-- ...................... (1) - 00:00:36
+--> Exports                  <-- ...................... (1) - 00:00:03
+--> Mount Targets            <-- ...................... (1) - 00:00:29
+
+Containers...
+--> Clusters                 <-- ...................... (1) - 00:00:13
+--> Node Pools               <-- ...................... (1) - 00:00:02
+
+Resource Management...
+--> Stacks                   <-- ...................... (0) - 00:00:02
+
+Streams...
+--> Streams                  <-- ...................... (0) - 00:00:05
+
+Budgets...
+--> Budgets                  <-- . (0) - 00:00:00
+
+Monitoring and Notifications...
+--> Alarms                   <-- ...................... (0) - 00:00:03
+--> Topics                   <-- ...................... (1) - 00:00:03
+--> Subscriptions            <-- ...................... (1) - 00:00:03
+
+Edge Services...
+--> Healthcheck Ping         <-- ...................... (0) - 00:00:10
+--> Healthcheck HTTP         <-- ...................... (1) - 00:00:10
+
+Email Notifications...
+--> Senders                  <-- ...................... (0) - 00:00:28
+--> Suppressions             <-- ...................... (0) - 00:00:02
+
+Limits and Quotas...
+--> Limits                   <-- ......................... (91) - 00:00:07
+--> Quotas                   <-- ...................... (1) - 00:00:02
+
+*** Elapsed Region 'us-ashburn-1' - 00:24:24 ***
+
+##############################
+#    Region us-phoenix-1     #
+##############################
+Identity...
+--> Availability Domains     <--  (3) - 00:00:00
+
+Network...
+--> Virtual Cloud Networks   <-- ...................... (9) - 00:00:03
+--> Subnets                  <-- +++++++++++++++++++++++++++++++++++++++++++++++ (29) - 00:05:28
+--> Network Security Groups  <-- ...................... (0) - 00:00:04
+--> Service Gateways         <-- ...................... (1) - 00:00:08
+--> NAT Gateways             <-- ...................... (0) - 00:00:03
+--> Dynamic Routing GWs      <-- ...................... (0) - 00:00:03
+--> Dynamic Routing GW Attch <-- ...................... (0) - 00:00:03
+--> Customer Prem Equipments <-- ...................... (0) - 00:00:03
+--> IPSEC tunnels            <-- ...................... (0) - 00:00:03
+--> Remote Peer Conns        <-- ...................... (0) - 00:00:03
+--> Virtual Circuits         <-- ....................
+Error in ShowOCIService:__load_data_main: : ('Connection aborted.', OSError("(60, 'ETIMEDOUT')"))
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/connectionpool.py", line 604, in urlopen
+    chunked=chunked)
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/connectionpool.py", line 388, in _make_request
+    six.raise_from(e, None)
+  File "<string>", line 2, in raise_from
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/connectionpool.py", line 384, in _make_request
+    httplib_response = conn.getresponse()
+  File "/usr/local/Cellar/python/3.7.5/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/client.py", line 1344, in getresponse
+    response.begin()
+  File "/usr/local/Cellar/python/3.7.5/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/client.py", line 306, in begin
+    version, status, reason = self._read_status()
+  File "/usr/local/Cellar/python/3.7.5/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/client.py", line 267, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/usr/local/Cellar/python/3.7.5/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socket.py", line 589, in readinto
+    return self._sock.recv_into(b)
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/contrib/pyopenssl.py", line 303, in recv_into
+    raise SocketError(str(e))
+OSError: (60, 'ETIMEDOUT')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/requests/adapters.py", line 454, in send
+    enforce_content_length=True
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/connectionpool.py", line 642, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/util/retry.py", line 371, in increment
+    raise six.reraise(type(error), error, _stacktrace)
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/packages/six.py", line 689, in reraise
+    raise value.with_traceback(tb)
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/connectionpool.py", line 604, in urlopen
+    chunked=chunked)
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/connectionpool.py", line 388, in _make_request
+    six.raise_from(e, None)
+  File "<string>", line 2, in raise_from
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/connectionpool.py", line 384, in _make_request
+    httplib_response = conn.getresponse()
+  File "/usr/local/Cellar/python/3.7.5/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/client.py", line 1344, in getresponse
+    response.begin()
+  File "/usr/local/Cellar/python/3.7.5/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/client.py", line 306, in begin
+    version, status, reason = self._read_status()
+  File "/usr/local/Cellar/python/3.7.5/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/client.py", line 267, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/usr/local/Cellar/python/3.7.5/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socket.py", line 589, in readinto
+    return self._sock.recv_into(b)
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/urllib3/contrib/pyopenssl.py", line 303, in recv_into
+    raise SocketError(str(e))
+oci._vendor.urllib3.exceptions.ProtocolError: ('Connection aborted.', OSError("(60, 'ETIMEDOUT')"))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.7/site-packages/oci/base_client.py", line 343, in request
+    timeout=self.timeout)
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/requests/sessions.py", line 537, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/requests/sessions.py", line 650, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.7/site-packages/oci/_vendor/requests/adapters.py", line 503, in send
+    raise ConnectionError(err, request=request)
+oci._vendor.requests.exceptions.ConnectionError: ('Connection aborted.', OSError("(60, 'ETIMEDOUT')"))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/hammer/Documents/GitHub/oci_scripts/show_oci/showoci.py", line 378, in <module>
+    execute_extract()
+  File "/Users/hammer/Documents/GitHub/oci_scripts/show_oci/showoci.py", line 109, in execute_extract
+    if not data.load_service_data():
+  File "/Users/hammer/Documents/GitHub/oci_scripts/show_oci/showoci_data.py", line 54, in load_service_data
+    return self.service.load_service_data()
+  File "/Users/hammer/Documents/GitHub/oci_scripts/show_oci/showoci_service.py", line 376, in load_service_data
+    return self.__load_data_main()
+  File "/Users/hammer/Documents/GitHub/oci_scripts/show_oci/showoci_service.py", line 671, in __load_data_main
+    self.__load_oci_region_data(region_name)
+  File "/Users/hammer/Documents/GitHub/oci_scripts/show_oci/showoci_service.py", line 699, in __load_oci_region_data
+    self.__load_core_network_main()
+  File "/Users/hammer/Documents/GitHub/oci_scripts/show_oci/showoci_service.py", line 1327, in __load_core_network_main
+    network[self.C_NETWORK_VC] += self.__load_core_network_vc(virtual_network, compartments)
+  File "/Users/hammer/Documents/GitHub/oci_scripts/show_oci/showoci_service.py", line 2692, in __load_core_network_vc
+    compartment['id']
+  File "/usr/local/lib/python3.7/site-packages/oci/pagination/pagination_utils.py", line 203, in list_call_get_all_results
+    for response in list_call_get_all_results_generator(list_func_ref, 'response', *list_func_args, **list_func_kwargs):
+  File "/usr/local/lib/python3.7/site-packages/oci/pagination/pagination_utils.py", line 271, in list_call_get_all_results_generator
+    call_result = retry.DEFAULT_RETRY_STRATEGY.make_retrying_call(list_func_ref, *list_func_args, **list_func_kwargs)
+  File "/usr/local/lib/python3.7/site-packages/oci/retry/retry.py", line 271, in make_retrying_call
+    return func_ref(*func_args, **func_kwargs)
+  File "/usr/local/lib/python3.7/site-packages/oci/core/virtual_network_client.py", line 11553, in list_virtual_circuits
+    response_type="list[VirtualCircuit]")
+  File "/usr/local/lib/python3.7/site-packages/oci/base_client.py", line 235, in call_api
+    response = self.request(request)
+  File "/usr/local/lib/python3.7/site-packages/oci/base_client.py", line 352, in request
+    raise exceptions.RequestException(e)
+oci.exceptions.RequestException: ('Connection aborted.', OSError("(60, 'ETIMEDOUT')"))

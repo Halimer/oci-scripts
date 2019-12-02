@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "showoci.py", line 378, in <module>
+    execute_extract()
+  File "showoci.py", line 88, in execute_extract
+    data = ShowOCIData(flags)
+  File "/Users/hammer/Documents/GitHub/oci_scripts/showoci_data.py", line 40, in __init__
+    self.service = ShowOCIService(flags)
+  File "/Users/hammer/Documents/GitHub/oci_scripts/showoci_service.py", line 334, in __init__
+    self.generate_signer_from_config(flags.config_file, flags.config_section)
+  File "/Users/hammer/Documents/GitHub/oci_scripts/showoci_service.py", line 345, in generate_signer_from_config
+    user=self.config["user"],
+KeyError: 'user'
