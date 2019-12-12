@@ -157,8 +157,11 @@ class ShowOCIOutput(object):
             self.print_header("Users", 2)
 
             for user in users:
-                print(self.taba + user['name'])
-                print(self.taba + user['is_mfa_activated'])
+                print(self.taba + "User Name :" + user['name'])
+                print(self.taba + "Description : " + user['description'])
+                print(self.taba + "Is MFA Activated : " + user['is_mfa_activated'])
+                print(self.taba + "Lifecycle State : " + user['lifecycle_state'])
+                print(self.taba + "Identity Provider Name : " + user['identity_provider_name'])
                 print(self.tabs + "Groups : " + user['groups'])
                 print("")
 
@@ -2032,14 +2035,14 @@ class ShowOCICSV(object):
             self.__print_error("__csv_identity_groups", e)
 
     ##########################################################################
-    # CSV Identity Users - Hammer Working
+    # CSV Identity Users
     ##########################################################################
 
     def __csv_identity_users(self, users):
         try:
             for user in users:
 
-                    data = {'user_name': user['name'], 'is_mfa_activated': user['is_mfa_activated']}
+                    data = {'user_name': user['name'], 'description': user['description'], 'is_mfa_activated': user['is_mfa_activated'], 'lifecycle_state': user['lifecycle_state'], 'identity_provider_name': user['identity_provider_name'], 'user_time_created': user['time_created'],  'groups': user['groups'],  }
 
                     self.csv_identity_users.append(data)
 

@@ -27,3 +27,4 @@ Allow Group Hammer_Show_OCI to read network-security-groups in tenancy
 Allow Group Hammer_Show_OCI to read network-security-groups in tenancy
 
 
+./showoci.py -n -c -cn -lq -o -l -d -f -t orasenatdpltsecitom01 -csv ~/orasenatdpltsecitom01/csv/
