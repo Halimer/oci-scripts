@@ -1,0 +1,29 @@
+#!/bin/bash
+yum install -y python3
+yum install -y python-oci-cli
+pip3 install oci
+systemctl enable ocid.service
+systemctl start ocid.service
+systemctl status ocid.service
+mkdir /home/opc/showoci
+
+wget https://raw.githubusercontent.com/oracle/oci-python-sdk/master/examples/showoci/showoci.py /home/opc/showoci
+wget https://raw.githubusercontent.com/oracle/oci-python-sdk/master/examples/showoci/showoci_data.py /home/opc/showoci
+wget https://raw.githubusercontent.com/oracle/oci-python-sdk/master/examples/showoci/showoci_output.py /home/opc/showoci
+wget https://raw.githubusercontent.com/oracle/oci-python-sdk/master/examples/showoci/showoci_service.py /home/opc/showoci
+wget https://raw.githubusercontent.com/oracle/oci-python-sdk/master/examples/showoci/showoci_to_se.py /home/opc/showoci
+wget https://raw.githubusercontent.com/oracle/oci-python-sdk/master/examples/showoci/run_daily_report.sh /home/opc/showoci
+
+
+Allow group Hammer_Show_OCI to inspect all-objects in tenancy
+Allow group Hammer_Show_OCI to read instances      in tenancy
+Allow group Hammer_Show_OCI to read load-balancers in tenancy
+Allow group Hammer_Show_OCI to read buckets in tenancy
+Allow group Hammer_Show_OCI to read nat-gateways in tenancy
+Allow group Hammer_Show_OCI to read public-ips in tenancy
+Allow group Hammer_Show_OCI to read file-family in tenancy
+Allow group Hammer_Show_OCI to read instance-configurations in tenancy
+Allow Group Hammer_Show_OCI to read network-security-groups in tenancy
+Allow Group Hammer_Show_OCI to read network-security-groups in tenancy
+
+

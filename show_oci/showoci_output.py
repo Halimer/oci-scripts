@@ -158,6 +158,7 @@ class ShowOCIOutput(object):
 
             for user in users:
                 print(self.taba + user['name'])
+                print(self.taba + user['is_mfa_activated'])
                 print(self.tabs + "Groups : " + user['groups'])
                 print("")
 
@@ -1874,6 +1875,7 @@ class ShowOCICSV(object):
     ############################################
     csv_file_header = ""
     csv_identity_groups = []
+    csv_identity_users = []
     csv_identity_policies = []
     csv_compute = []
     csv_database = []
@@ -1919,6 +1921,7 @@ class ShowOCICSV(object):
             self.__print_header("Processing CSV Files", 0)
             self.__export_to_csv_file("identity_policy", self.csv_identity_policies)
             self.__export_to_csv_file("identity_groups", self.csv_identity_groups)
+            self.__export_to_csv_file("identity_users", self.csv_identity_users)
             self.__export_to_csv_file("compute", self.csv_compute)
             self.__export_to_csv_file("network_subnet", self.csv_network_subnet)
             self.__export_to_csv_file("network_routes", self.csv_network_routes)
@@ -2029,6 +2032,22 @@ class ShowOCICSV(object):
             self.__print_error("__csv_identity_groups", e)
 
     ##########################################################################
+    # CSV Identity Users - Hammer Working
+    ##########################################################################
+
+    def __csv_identity_users(self, users):
+        try:
+            for user in users:
+
+                    data = {'user_name': user['name'], 'is_mfa_activated': user['is_mfa_activated']}
+
+                    self.csv_identity_users.append(data)
+
+        except Exception as e:
+            self.__print_error("__csv_identity_users", e)
+
+
+    ##########################################################################
     # csv Identity Policies
     ##########################################################################
     def __csv_identity_policies(self, policies_data):
@@ -2054,7 +2073,7 @@ class ShowOCICSV(object):
             self.__print_error("__csv_identity_policies", e)
 
     ##########################################################################
-    # CSV Identity Module
+    # CSV Identity Module - Need to add a flag for it
     ##########################################################################
     def __csv_identity_main(self, data):
         try:
@@ -2063,6 +2082,9 @@ class ShowOCICSV(object):
 
             if 'policies' in data:
                 self.__csv_identity_policies(data['policies'])
+            
+            if 'users' in data:
+                self.__csv_identity_users(data['users'])
 
         except Exception as e:
             self.__print_error("__csv_identity_main", e)
