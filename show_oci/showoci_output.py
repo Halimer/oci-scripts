@@ -17,6 +17,7 @@ from __future__ import print_function
 import csv
 
 
+
 class ShowOCIOutput(object):
 
     ##########################################################################
@@ -2035,16 +2036,18 @@ class ShowOCICSV(object):
             self.__print_error("__csv_identity_groups", e)
 
     ##########################################################################
-    # CSV Identity Users
+    # CSV Identity Users - Added DB output to move somewhere
     ##########################################################################
 
     def __csv_identity_users(self, users):
         try:
+
             for user in users:
 
                     data = {'user_name': user['name'], 'description': user['description'], 'is_mfa_activated': user['is_mfa_activated'], 'lifecycle_state': user['lifecycle_state'], 'identity_provider_name': user['identity_provider_name'], 'user_time_created': user['time_created'],  'groups': user['groups'],  }
 
                     self.csv_identity_users.append(data)
+
 
         except Exception as e:
             self.__print_error("__csv_identity_users", e)

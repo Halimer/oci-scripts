@@ -2,3 +2,4 @@
 .DS_Store
 *.csv
 orasenatdpltsecitom01/csv/identity.json.txt
+*.pyc
