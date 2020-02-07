@@ -62,7 +62,7 @@ import sys
 import argparse
 import datetime
 
-version = "19.11.19"
+version = "20.1.29"
 
 ##########################################################################
 # execute_extract
@@ -222,6 +222,7 @@ def set_parser_arguments():
     parser.add_argument('-b', action='store_true', default=False, dest='budgets', help='Print Budgets')
     parser.add_argument('-n', action='store_true', default=False, dest='network', help='Print Network')
     parser.add_argument('-i', action='store_true', default=False, dest='identity', help='Print Identity')
+    parser.add_argument('-ic', action='store_true', default=False, dest='identity_compartments', help='Print Identity Compartments only')
     parser.add_argument('-c', action='store_true', default=False, dest='compute', help='Print Compute')
     parser.add_argument('-cn', action='store_true', default=False, dest='container', help='Print Containers')
     parser.add_argument('-o', action='store_true', default=False, dest='object', help='Print Object Storage')
@@ -233,6 +234,7 @@ def set_parser_arguments():
     parser.add_argument('-s', action='store_true', default=False, dest='streams', help='Print Streams')
     parser.add_argument('-rm', action='store_true', default=False, dest='orm', help='Print Resource management')
     parser.add_argument('-so', action='store_true', default=False, dest='sumonly', help='Print Summary Only')
+    parser.add_argument('-paas', action='store_true', default=False, dest='paas_native', help='Print Oracle Paas Native - OIC OAC ODA')
     parser.add_argument('-edge', action='store_true', default=False, dest='edge', help='Print Edge Services (Healthcheck)')
     parser.add_argument('-lq', action='store_true', default=False, dest='limits', help='Print Limits and Quotas')
     parser.add_argument('-mc', action='store_true', default=False, dest='mgdcompart', help='exclude ManagedCompartmentForPaaS')
@@ -241,8 +243,10 @@ def set_parser_arguments():
     parser.add_argument('-t', default="", dest='profile', help='Config file section to use (tenancy profile)')
     parser.add_argument('-p', default="", dest='proxy', help='Set Proxy (i.e. www-proxy-server.com:80) ')
     parser.add_argument('-rg', default="", dest='region', help='Filter by Region')
-    parser.add_argument('-cp', default="", dest='compart', help='Filter by Compartment')
+    parser.add_argument('-cp', default="", dest='compart', help='Filter by Compartment Name or OCID')
+    parser.add_argument('-cpr', default="", dest='compart_recursive', help='Filter by Compartment Name or OCID include sub compartments')
     parser.add_argument('-cpath', default="", dest='compartpath', help='Filter by Compartment path ,(i.e. -cpath "Adi / Sub"')
+    parser.add_argument('-tenantid', default="", dest='tenantid', help='Override confile file tenancy_id')
     parser.add_argument('-cf', type=argparse.FileType('r'), dest='config', help="Config File")
     parser.add_argument('-csv', default="", dest='csv', help="Output to CSV files, Input as file header")
     parser.add_argument('-jf', type=argparse.FileType('w'), dest='joutfile', help="Output to file   (JSON format)")
@@ -258,10 +262,10 @@ def set_parser_arguments():
         parser.print_help()
         return None
 
-    if not (result.all or result.allnoiam or result.network or result.identity or
+    if not (result.all or result.allnoiam or result.network or result.identity or result.identity_compartments or
             result.compute or result.object or
             result.load or result.database or result.file or result.email or result.orm or result.container or
-            result.streams or result.budgets or result.monitoring or result.edge or result.announcement or result.limits):
+            result.streams or result.budgets or result.monitoring or result.edge or result.announcement or result.limits or result.paas_native):
 
         parser.print_help()
 
@@ -327,6 +331,9 @@ def set_service_extract_flags(cmd):
     if cmd.all or cmd.allnoiam or cmd.limits:
         prm.read_limits = True
 
+    if cmd.all or cmd.allnoiam or cmd.paas_native:
+        prm.read_paas_native = True
+
     if cmd.all or cmd.allnoiam or cmd.monitoring:
         prm.read_monitoring_notifications = True
 
@@ -352,11 +359,17 @@ def set_service_extract_flags(cmd):
     if cmd.compart:
         prm.filter_by_compartment = str(cmd.compart)
 
+    if cmd.compart_recursive:
+        prm.filter_by_compartment_recursive = str(cmd.compart_recursive)
+
     if cmd.compartpath:
         prm.filter_by_compartment_path = str(cmd.compartpath)
 
     if cmd.instance_principals:
         prm.use_instance_principals = True
+
+    if cmd.tenantid:
+        prm.filter_by_tenancy_id = cmd.tenantid
 
     return prm
 

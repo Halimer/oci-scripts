@@ -17,7 +17,6 @@ from __future__ import print_function
 import csv
 
 
-
 class ShowOCIOutput(object):
 
     ##########################################################################
@@ -113,9 +112,12 @@ class ShowOCIOutput(object):
             print("Comand Line    : " + data['cmdline'])
             print("OCI SDK Ver    : " + data['oci_sdk_version'])
             if 'proxy' in data:
-                print("Proxy         : " + data['proxy'])
+                print("Proxy          : " + data['proxy'])
+            if 'override_tenant_id' in data:
+                if data['override_tenant_id']:
+                    print("Override id    : " + data['override_tenant_id'])
             if 'joutfile' in data:
-                print("JSON Out      : " + data['joutfile'])
+                print("JSON Out       : " + data['joutfile'])
 
             print("")
 
@@ -158,11 +160,7 @@ class ShowOCIOutput(object):
             self.print_header("Users", 2)
 
             for user in users:
-                print(self.taba + "User Name :" + user['name'])
-                print(self.taba + "Description : " + user['description'])
-                print(self.taba + "Is MFA Activated : " + user['is_mfa_activated'])
-                print(self.taba + "Lifecycle State : " + user['lifecycle_state'])
-                print(self.taba + "Identity Provider Name : " + user['identity_provider_name'])
+                print(self.taba + user['name'])
                 print(self.tabs + "Groups : " + user['groups'])
                 print("")
 
@@ -389,18 +387,19 @@ class ShowOCIOutput(object):
         try:
             if not route_tables:
                 return
+
             for rt in route_tables:
                 print("")
                 print(self.tabs + "Route Table : " + rt['name'] + self.__print_core_network_vcn_compartment(vcn_compartment, rt['compartment_name']))
+
                 if 'route_rules' not in rt:
                     print(self.tabs + self.tabs + "Route   : Empty.")
-                    return
-                if len(rt['route_rules']) == 0:
-                    print(self.tabs + self.tabs + "Route   : Empty.")
-                    return
-
-                for rl in rt['route_rules']:
-                    print(self.tabs + self.tabs + "Route   : " + str(rl['desc']))
+                else:
+                    if len(rt['route_rules']) == 0:
+                        print(self.tabs + self.tabs + "Route   : Empty.")
+                    else:
+                        for rl in rt['route_rules']:
+                            print(self.tabs + self.tabs + "Route   : " + str(rl['desc']))
 
         except Exception as e:
             self.__print_error("__print_core_network_vcn_route_tables", e)
@@ -1131,7 +1130,7 @@ class ShowOCIOutput(object):
             self.__print_error("__print_limits_main", e)
 
     ##########################################################################
-    # Streams
+    # Quotas
     ##########################################################################
     def __print_quotas_main(self, quotas):
 
@@ -1150,6 +1149,55 @@ class ShowOCIOutput(object):
 
         except Exception as e:
             self.__print_error("__print_quotas_main", e)
+
+    ##########################################################################
+    # PaaS Servics
+    ##########################################################################
+    def __print_paas_services_main(self, paas_services):
+
+        try:
+            if not paas_services:
+                return
+
+            # OIC
+            if 'oic' in paas_services:
+                self.print_header("OIC Native", 2)
+                for val in paas_services['oic']:
+                    print(self.taba + val['display_name'] + ", (" + val['integration_instance_type'] + "), Created: " + val['time_created'][0:16] + " (" + val['lifecycle_state'] + ")")
+                    print(self.tabs + "Pack : " + val['message_packs'] + ", BYOL: " + str(val['is_byol']))
+                    print(self.tabs + "URL  : " + val['instance_url'])
+                print("")
+
+            # OAC
+            if 'oac' in paas_services:
+                self.print_header("OAC Native", 2)
+                for val in paas_services['oac']:
+                    print(self.taba + val['name'] + ", (" + val['feature_set'] + "), Created: " + val['time_created'][0:16] + " (" + val['lifecycle_state'] + ")")
+                    print(self.tabs + "Desc : " + val['description'])
+                    print(self.tabs + "Email: " + val['email_notification'] + ", License: " + str(val['license_type']) + ", Capacity: " + val['capacity_type'] + ":" + val['capacity_value'])
+                    print(self.tabs + "URL  : " + val['service_url'])
+                print("")
+
+            # OCE
+            if 'oce' in paas_services:
+                self.print_header("OCE Native", 2)
+                for val in paas_services['oce']:
+                    print(self.taba + val['name'] + ", Created: " + val['time_created'][0:16] + " (" + val['lifecycle_state'] + ")")
+                    print(self.tabs + "Email: " + val['admin_email'])
+                    if 'pod' in val['service']:
+                        pod = val['service']['pod']
+                        print(self.tabs + "Pod: " + str(pod['name']) + " (" + str(pod['version']) + ") ")
+                print("")
+
+            # ODA
+            if 'oda' in paas_services:
+                self.print_header("ODA Native", 2)
+                for val in paas_services['oda']:
+                    print(self.taba + val['display_name'] + ", (" + val['shape_name'] + "), Created: " + val['time_created'][0:16] + " (" + val['lifecycle_state'] + " - " + val['lifecycle_sub_state'] + ")")
+                print("")
+
+        except Exception as e:
+            self.__print_error("__print_paas_services_main", e)
 
     ##########################################################################
     # Container
@@ -1501,6 +1549,8 @@ class ShowOCIOutput(object):
                     self.__print_edge_services_main(cdata['edge_services'])
                 if 'quotas' in cdata:
                     self.__print_quotas_main(cdata['quotas'])
+                if 'paas_services' in cdata:
+                    self.__print_paas_services_main(cdata['paas_services'])
 
         except Exception as e:
             self.__print_error("__print_region_data", e)
@@ -1618,6 +1668,27 @@ class ShowOCISummary(object):
 
         except Exception as e:
             self.__print_error("__summary_object_storage_main", e)
+
+    ##########################################################################
+    # paas services
+    ##########################################################################
+    def __summary_paas_services_main(self, paas_services):
+
+        try:
+            if not paas_services:
+                return
+
+            if 'oic' in paas_services:
+                self.__summary_core_size(paas_services['oic'])
+            if 'oac' in paas_services:
+                self.__summary_core_size(paas_services['oac'])
+            if 'oce' in paas_services:
+                self.__summary_core_size(paas_services['oce'])
+            if 'oda' in paas_services:
+                self.__summary_core_size(paas_services['oda'])
+
+        except Exception as e:
+            self.__print_error("__summary_paas_services_main", e)
 
     ##########################################################################
     # print database autonumous
@@ -1846,6 +1917,8 @@ class ShowOCISummary(object):
                     self.__summary_file_storage_main(cdata['file_storage'])
                 if 'load_balancer' in cdata:
                     self.__summary_load_balancer_main(cdata['load_balancer'])
+                if 'paas_services' in cdata:
+                    self.__summary_paas_services_main(cdata['paas_services'])
 
                 # print compartment header if data in the global list
                 if 'path' in cdata and self.summary_global_list:
@@ -1925,7 +1998,6 @@ class ShowOCICSV(object):
             self.__print_header("Processing CSV Files", 0)
             self.__export_to_csv_file("identity_policy", self.csv_identity_policies)
             self.__export_to_csv_file("identity_groups", self.csv_identity_groups)
-            self.__export_to_csv_file("identity_users", self.csv_identity_users)
             self.__export_to_csv_file("compute", self.csv_compute)
             self.__export_to_csv_file("network_subnet", self.csv_network_subnet)
             self.__export_to_csv_file("network_routes", self.csv_network_routes)
@@ -2036,22 +2108,25 @@ class ShowOCICSV(object):
             self.__print_error("__csv_identity_groups", e)
 
     ##########################################################################
-    # CSV Identity Users - Added DB output to move somewhere
+    # CSV Identity Users
     ##########################################################################
 
     def __csv_identity_users(self, users):
         try:
-
             for user in users:
-
-                    data = {'user_name': user['name'], 'description': user['description'], 'is_mfa_activated': user['is_mfa_activated'], 'lifecycle_state': user['lifecycle_state'], 'identity_provider_name': user['identity_provider_name'], 'user_time_created': user['time_created'],  'groups': user['groups'],  }
-
-                    self.csv_identity_users.append(data)
-
+                data = {
+                    'user_name': user['name'],
+                    'description': user['description'],
+                    'is_mfa_activated': user['is_mfa_activated'],
+                    'lifecycle_state': user['lifecycle_state'],
+                    'identity_provider_name': user['identity_provider_name'],
+                    'user_time_created': user['time_created'],
+                    'groups': user['groups']
+                }
+                self.csv_identity_users.append(data)
 
         except Exception as e:
             self.__print_error("__csv_identity_users", e)
-
 
     ##########################################################################
     # csv Identity Policies
@@ -2079,18 +2154,18 @@ class ShowOCICSV(object):
             self.__print_error("__csv_identity_policies", e)
 
     ##########################################################################
-    # CSV Identity Module - Need to add a flag for it
+    # CSV Identity Module
     ##########################################################################
     def __csv_identity_main(self, data):
         try:
+            if 'users' in data:
+                self.__csv_identity_users(data['users'])
+
             if 'groups' in data:
                 self.__csv_identity_groups(data['groups'])
 
             if 'policies' in data:
                 self.__csv_identity_policies(data['policies'])
-            
-            if 'users' in data:
-                self.__csv_identity_users(data['users'])
 
         except Exception as e:
             self.__print_error("__csv_identity_main", e)
@@ -2378,7 +2453,6 @@ class ShowOCICSV(object):
                         'node_count': "",
                         'database': dbs['db_name'],
                         'version_license_model': dbs['license_model'],
-                        'domain': "",
                         'data_subnet': "",
                         'backup_subnet': "",
                         'scan_ips': "",
