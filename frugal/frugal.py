@@ -73,8 +73,33 @@ def stop_autonomous(database_client, autonomous_database_id):
     except Exception as e:
             raise RuntimeError("Error in stop_instance " + str(e.args))
 
+def stop_database_node(database_client, compartment_id, db_system_id):
+    print("Stopping Autonomous Database: ", db_system_id)
+    try:
+        db_nodes = oci.pagination.list_call_get_all_results(
+            database_client.list_db_nodes,
+            compartment_id,
+            db_system_id=db_system_id).data
+        
+        response = database_client.autonomous_database_id(autonomous_database_id=autonomous_database_id)
+    except Exception as e:
+            raise RuntimeError("Error in stop_instance " + str(e.args))
 
 
 
 
 
+#############################################################
+# Stops an Autonmous Database based on instance ID
+#############################################################
+def get_database_ip(signer, compartment_id, db_system_id):
+    db_private_ips = []
+
+    db_client = oci.database.DatabaseClient(config={}, signer=signer)
+    db_nodes = oci.pagination.list_call_get_all_results(
+            db_client.list_db_nodes,
+            compartment_id,
+            db_system_id=db_system_id).data
+    for db_node in db_nodes:
+        # Adding DB Nodes VNICs to find IPs
+        vnic_ips = get_vnic_private_ips(signer, db_node.vnic_id)
