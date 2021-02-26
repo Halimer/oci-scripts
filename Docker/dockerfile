@@ -1,8 +1,0 @@
-FROM oraclelinux
-RUN yum install httpd php -y
-ADD index.php /var/www/html/
-CMD firewall-cmd --permanent --add-port=80/tcp
-CMD firewall-cmd --reload
-CMD systemctl start httpd
-CMD tail -f /var/log/httpd/access_log
-EXPOSE 80
