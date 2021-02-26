@@ -1,9 +1,7 @@
 
 .DS_Store
 *.csv
-orasenatdpltsecitom01/csv/identity.json.txt
-show_oci/__pycache__/showoci_data.cpython-37.pyc
 *.pyc
 *.pyc
-show_oci/__pycache__/showoci_service.cpython-37.pyc
 *.pyc
+**__pycache__**

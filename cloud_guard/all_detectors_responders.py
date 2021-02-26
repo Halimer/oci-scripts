@@ -4,6 +4,7 @@ import argparse
 import oci
 import datetime
 import csv
+import os
 
 ##########################################################################
 # Print to CSV 
@@ -72,7 +73,7 @@ def execute_report():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', default="", dest='config_profile', help='Config file section to use (tenancy profile)')
     parser.add_argument('-p', default="", dest='proxy', help='Set Proxy (i.e. www-proxy-server.com:80) ')
-    parser.add_argument('--output-to-bucket', default="", dest='output_bucket', help='Set Output bucket name (i.e. my-reporting-bucket) ')
+    #parser.add_argument('--output-to-bucket', default="", dest='output_bucket', help='Set Output bucket name (i.e. my-reporting-bucket) ')
 
     parser.add_argument('-ip', action='store_true', default=False, dest='is_instance_principals', help='Use Instance Principals for Authentication')
     parser.add_argument('-dt', action='store_true', default=False, dest='is_delegation_token', help='Use Delegation Token for Authentication')
