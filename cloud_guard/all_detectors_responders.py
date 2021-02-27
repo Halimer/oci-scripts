@@ -90,6 +90,7 @@ def execute_report():
     
     cg.get_responders()
     cg.get_detectors()
+    cg.get_problems()
 
 
 ##########################################################################
@@ -163,6 +164,7 @@ def create_signer(config_profile, is_instance_principals, is_delegation_token):
 
 
 class Cloud_Guard_Data: 
+    __compartments = []
     __problems = []
     __detectors = []
     __responders = []
@@ -184,6 +186,7 @@ class Cloud_Guard_Data:
 
             # Getting Tenancy Data and Region data
             self.__tenancy = self.__identity.get_tenancy(config["tenancy"]).data
+            print(self.__tenancy)
             self.__regions = self.__identity.list_region_subscriptions(self.__tenancy.id).data
 
         except Exception as e:
@@ -224,7 +227,7 @@ class Cloud_Guard_Data:
                     self.__detectors.append(cg_rule)
             print_to_csv_file('all_detectors', self.__detectors)
         except Exception as e:
-            raise RuntimeError("Failed to get detectors" + str(e.args))
+            raise RuntimeError("Failed to get responders" + str(e.args))
         
     def get_responders(self):
             try: 
@@ -253,6 +256,52 @@ class Cloud_Guard_Data:
                 print_to_csv_file('all_responders', self.__responders)
             except Exception as e:
                 raise RuntimeError("Failed to get detectors" + str(e.args))
+
+    def get_problems(self):
+        try: 
+            # Getting all compartments in tenancy
+            compartments = oci.pagination.list_call_get_all_results(
+                self.__identity.list_compartments,
+                self.__tenancy.id
+            ).data
+
+            # Adding the tenancy to the list of compartments
+            compartments.append(self.__tenancy)
+        except Exception as e:
+            raise RuntimeError("Failed to get compartments " + str(e.args))    
+        
+        try:
+            for compartment in compartments: 
+                raw_problems = oci.pagination.list_call_get_all_results(
+                    self.__cloud_guard.list_problems,
+                    compartment.id
+                        ).data
+                
+                for problem in raw_problems:
+                    problem = {
+                        "id" : problem.id,
+                        "compartment_id" : problem.compartment_id,
+                        "detector_rule_id" : problem.detector_rule_id,
+                        "risk_level" : problem.risk_level,
+                        "resource_name" : problem.resource_name,
+                        "resource_id" : problem.resource_id,
+                        "resource_type" : problem.resource_type,
+                        "time_first_detected" : problem.time_first_detected,
+                        "time_last_detected" : problem.time_last_detected,
+                        "labels" : str(problem.labels).replace('\n',''),
+                        "lifecycle_detail" : problem.lifecycle_detail,
+                        "lifecycle_state" : problem.lifecycle_state,
+                        "region" : problem.region,
+                        "target_id" : problem.target_id,
+                        "detector_id" : problem.detector_id
+                        
+                    }
+                    self.__problems.append(problem)
+            
+            print_to_csv_file("all_problems", self.__problems)
+        except Exception as e:
+            raise RuntimeError("Failed to get problems " + str(e.args))    
+
 
 ##########################################################################
 # Main
