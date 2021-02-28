@@ -71,12 +71,19 @@ def execute_report():
 
     # Get Command Line Parser
     parser = argparse.ArgumentParser()
+    # OCI config options
     parser.add_argument('-t', default="", dest='config_profile', help='Config file section to use (tenancy profile)')
     parser.add_argument('-p', default="", dest='proxy', help='Set Proxy (i.e. www-proxy-server.com:80) ')
-    #parser.add_argument('--output-to-bucket', default="", dest='output_bucket', help='Set Output bucket name (i.e. my-reporting-bucket) ')
-
-    parser.add_argument('-ip', action='store_true', default=False, dest='is_instance_principals', help='Use Instance Principals for Authentication')
-    parser.add_argument('-dt', action='store_true', default=False, dest='is_delegation_token', help='Use Delegation Token for Authentication')
+    parser.add_argument(‘-ip’, action=‘store_true’, default=False, dest=‘is_instance_principals’, help=‘Use Instance Principals for Authentication’)
+    parser.add_argument(‘-dt’, action=‘store_true’, default=False, dest=‘is_delegation_token’, help=‘Use Delegation Token for Authentication’)
+    
+    # Output options
+    parser.add_argument('--output-to-bucket', default="", dest='output_bucket', help='Set Output bucket name (i.e. my-reporting-bucket) ')
+    parse.add_argument(‘—-output-directory‘, default=“” , dest=‘output_directory‘, help=‘Set directory for output to be stored‘)
+    
+    # Data options    
+    parser.add_argument(‘—-get-detectors-responders’, default=“False”, dest=‘get_rules’, help=‘If set to True will get the Cloud Guard detectors and responders rules‘)
+      
     cmd = parser.parse_args()
     # Getting  Command line  arguments
     # cmd = set_parser_arguments()
