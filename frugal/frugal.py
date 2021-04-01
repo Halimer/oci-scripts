@@ -18,7 +18,7 @@ query = "query instance, autonomousdatabase, database, dbsystem resources"
 
 query = "query instance, autonomousdatabase, database, dbsystem resources where (freeformTags.key = 'Frugal' && freeformTags.value = 'Yes')"
 
-# query = "query all resources where definedTags.key = 'CreatedBy' && definedTags.value = 'oracleidentitycloudservice/tom.liakos@oracle.com'"
+# query = "query all resources where definedTags.key = 'CreatedBy' && definedTags.value = 'username'"
 
 #query = "query instance, autonomousdatabase, database, dbsystem resources where definedTags.key = 'CreatedBy' && definedTags.value = 'oracleidentitycloudservice/josh.hammer@oracle.com'"
 
