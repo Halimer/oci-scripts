@@ -5,3 +5,4 @@
 *.pyc
 *.pyc
 **__pycache__**
+*.txt
