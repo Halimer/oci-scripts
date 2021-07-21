@@ -6,7 +6,7 @@ The `all_detector_responders.py` script gets all the configuration and activity 
 
 ### Installaltion 
 1. Download the python script:
-```wget https://raw.githubusercontent.com/Halimer/oci_scripts/master/cloud_guard/all_detectors.py```
+```wget https://raw.githubusercontent.com/Halimer/oci-scripts/master/cloud_guard/all_detectors_responders.py```
 1. Create a virtual environment:
 ```python3 -m venv oci_scripts_venv```
 1. Source the environment:
