@@ -96,7 +96,7 @@ def execute_report():
     oci_data.get_recommendations()
     oci_data.get_settings()
 
-
+# To remove 
 
 ##########################################################################
 # Create signer for Authentication
