@@ -6,6 +6,7 @@ import datetime
 import csv
 import os
 
+
 ##########################################################################
 # Print to CSV 
 ##########################################################################
@@ -91,6 +92,9 @@ def execute_report():
     cg.get_responders()
     cg.get_detectors()
     cg.get_problems()
+    cg.get_recommendations()
+
+
 
 
 ##########################################################################
@@ -168,10 +172,13 @@ class Cloud_Guard_Data:
     __problems = []
     __detectors = []
     __responders = []
+    __recommendations = []
 
     def __init__(self, config, signer, proxy):
         # Start print time info
-        print("Written by Josh Hammer February 2021.")
+        print("Written by Josh Hammer February 2021.  Hacked and botched by Chad Russell")
+        print("\n")
+        print("Cloud Guard Data")
         self.__config = config
         self.__signer = signer
         # self.__output_bucket = output_bucket
@@ -256,6 +263,27 @@ class Cloud_Guard_Data:
                 print_to_csv_file('all_responders', self.__responders)
             except Exception as e:
                 raise RuntimeError("Failed to get detectors" + str(e.args))
+    
+    def get_recommendations(self):
+            try: 
+                raw_recommendations = oci.pagination.list_call_get_all_results(
+                    self.__cloud_guard.list_recommendations,   
+                    compartment_id=self.__tenancy.id
+                        ).data                    
+                for recommendations in raw_recommendations:
+                    cg_recommendations = {
+                        "name" : recommendations.name,
+                        "id" : recommendations.id,
+                        "description" : recommendations.description,
+                        "time_created" : str(recommendations.time_created),
+                        "time_update" : str(recommendations.time_updated)
+                    }
+                    self.__recommendations.append(cg_recommendations)
+                print_to_csv_file('all_recommendations', self.__recommendations)
+            except Exception as e:
+                raise RuntimeError("Failed to get recommendations" + str(e.args))
+
+
 
     def get_problems(self):
         try: 
