@@ -5,7 +5,8 @@ import oci
 import datetime
 import csv
 import os
-
+from pyfiglet import figlet_format
+from oci.database.models import AutonomousDatabase
 
 ##########################################################################
 # Print to CSV 
@@ -87,13 +88,13 @@ def execute_report():
 
     # Identity extract compartments
     config, signer = create_signer(cmd.config_profile, cmd.is_instance_principals, cmd.is_delegation_token)
-    cg = Cloud_Guard_Data(config, signer, cmd.proxy)
+    oci_data = OCI_Data(config, signer, cmd.proxy)
     
-    cg.get_responders()
-    cg.get_detectors()
-    cg.get_problems()
-    cg.get_recommendations()
-
+    oci_data.get_responders()
+    oci_data.get_detectors()
+    oci_data.get_problems()
+    oci_data.get_recommendations()
+    oci_data.get_settings()
 
 
 
@@ -167,18 +168,19 @@ def create_signer(config_profile, is_instance_principals, is_delegation_token):
         return config, signer
 
 
-class Cloud_Guard_Data: 
+class OCI_Data: 
     __compartments = []
     __problems = []
     __detectors = []
     __responders = []
     __recommendations = []
+    __databases = []
 
     def __init__(self, config, signer, proxy):
         # Start print time info
         print("Written by Josh Hammer February 2021.  Hacked and botched by Chad Russell")
         print("\n")
-        print("Cloud Guard Data")
+        print( figlet_format("Cloud Guard Data +", font = "standard"))
         self.__config = config
         self.__signer = signer
         # self.__output_bucket = output_bucket
@@ -190,7 +192,11 @@ class Cloud_Guard_Data:
             self.__cloud_guard = oci.cloud_guard.CloudGuardClient(self.__config, signer=self.__signer)
             if proxy:
                 self.__cloud_guard.base_client.session.proxies = {'https': proxy}
+            self.__database = oci.database.DatabaseClient(self.__config, signer=self.__signer)
+            if proxy:
+                self.__database.base_client.session.proxies = {'https': proxy}
 
+            
             # Getting Tenancy Data and Region data
             self.__tenancy = self.__identity.get_tenancy(config["tenancy"]).data
             print(self.__tenancy)
@@ -235,6 +241,32 @@ class Cloud_Guard_Data:
             print_to_csv_file('all_detectors', self.__detectors)
         except Exception as e:
             raise RuntimeError("Failed to get responders" + str(e.args))
+
+
+    def get_settings(self):
+        try: 
+            raw_settings = oci.pagination.list_call_get_all_results(
+                self.__database.list_autonomous_databases,
+                compartment_id=self.__tenancy.id
+                    ).data
+            print(raw_settings)
+        #    for adbdata in raw_settings:
+         #       adb_data_raw = oci.pagination.list_call_get_all_results(
+          #          self.__database,
+                    #private_endpoint=private_endpoint.id,
+           #         compartment_id=self.__tenancy.id
+            #    ).data
+                
+            for settings in raw_settings:
+                adb_data = {
+                    "display_name" : display_name,
+                    #    "private_endpoint" : databases.private_endpoint,
+                        
+                                          }
+                self.__settings.append(adb_data)
+                print_to_csv_file('adb_data', self.__databases)
+        except Exception as e:
+            raise RuntimeError("Failed to get settings" + str(e.args))
         
     def get_responders(self):
             try: 
