@@ -14,14 +14,20 @@ The `all_detector_responders.py` script gets all the configuration and activity 
 1. Install the dependences:
 ```pip3 install oci```
 
-### Running the script on a local machine
+### Getting Security Zone data running the script on a local machine
 1. Source the environment:
 ```source oci_scripts_venv/bin/activate```
 1. Run the script:
-```python3 all_detector_responders.py```
+```python3 get_cg_sz_data.py -sz True```
 
-### Running the script in Cloud Shell
+### Getting Cloud Guard data running the script in Cloud Shell
 1. Source the environment:
 ```source oci_scripts_venv/bin/activate```
 1. Run the script:
-```python3 all_detector_responders.py -dt```
+```python3 get_cg_sz_data.py -dt -cg True```
+
+### Getting Cloud Guard and Security Zone data running the script on a local machine
+1. Source the environment:
+```source oci_scripts_venv/bin/activate```
+1. Run the script:
+```python3 get_cg_sz_data.py -cg True -sz True```
