@@ -74,10 +74,12 @@ def execute_report():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', default="", dest='config_profile', help='Config file section to use (tenancy profile)')
     parser.add_argument('-p', default="", dest='proxy', help='Set Proxy (i.e. www-proxy-server.com:80) ')
-    #parser.add_argument('--output-to-bucket', default="", dest='output_bucket', help='Set Output bucket name (i.e. my-reporting-bucket) ')
+    parser.add_argument('-cg', default=False, dest='cg', help='Passing True, Gets all Cloud Guard: responders, detectors, problems, and recommendations')
+    parser.add_argument('-sz', default=False, dest='sz', help='Passing True, Gets all Security Zones policies:')
 
     parser.add_argument('-ip', action='store_true', default=False, dest='is_instance_principals', help='Use Instance Principals for Authentication')
     parser.add_argument('-dt', action='store_true', default=False, dest='is_delegation_token', help='Use Delegation Token for Authentication')
+
     cmd = parser.parse_args()
     # Getting  Command line  arguments
     # cmd = set_parser_arguments()
@@ -89,11 +91,13 @@ def execute_report():
     config, signer = create_signer(cmd.config_profile, cmd.is_instance_principals, cmd.is_delegation_token)
     cg = Cloud_Guard_Data(config, signer, cmd.proxy)
     
-    cg.get_responders()
-    cg.get_detectors()
-    cg.get_problems()
-    cg.get_recommendations()
-    cg.get_security_zone_policies()
+    if cmd.cg:
+        cg.get_responders()
+        cg.get_detectors()
+        cg.get_problems()
+        cg.get_recommendations()
+    if cmd.sz:
+        cg.get_security_zone_policies()
 
 
 
@@ -178,9 +182,8 @@ class Cloud_Guard_Data:
 
     def __init__(self, config, signer, proxy):
         # Start print time info
-        print("Written by Josh Hammer February 2021.  Hacked and botched by Chad Russell")
+        print("Written by Josh Hammer February 2021. Hacked and botched by Chad Russell")
         print("\n")
-        print("Cloud Guard Data")
         self.__config = config
         self.__signer = signer
         # self.__output_bucket = output_bucket
@@ -195,7 +198,6 @@ class Cloud_Guard_Data:
 
             # Getting Tenancy Data and Region data
             self.__tenancy = self.__identity.get_tenancy(config["tenancy"]).data
-            print(self.__tenancy)
             self.__regions = self.__identity.list_region_subscriptions(self.__tenancy.id).data
 
         except Exception as e:
