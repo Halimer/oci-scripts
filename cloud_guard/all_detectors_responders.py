@@ -93,6 +93,7 @@ def execute_report():
     cg.get_detectors()
     cg.get_problems()
     cg.get_recommendations()
+    cg.get_security_zone_policies()
 
 
 
@@ -173,6 +174,7 @@ class Cloud_Guard_Data:
     __detectors = []
     __responders = []
     __recommendations = []
+    __security_zone_policies = []
 
     def __init__(self, config, signer, proxy):
         # Start print time info
@@ -234,7 +236,7 @@ class Cloud_Guard_Data:
                     self.__detectors.append(cg_rule)
             print_to_csv_file('all_detectors', self.__detectors)
         except Exception as e:
-            raise RuntimeError("Failed to get responders" + str(e.args))
+            raise RuntimeError("Failed to get detectors" + str(e.args))
         
     def get_responders(self):
             try: 
@@ -330,6 +332,36 @@ class Cloud_Guard_Data:
         except Exception as e:
             raise RuntimeError("Failed to get problems " + str(e.args))    
 
+    def get_security_zone_policies(self):
+        try: 
+            raw_sz_policies = oci.pagination.list_call_get_all_results(
+                self.__cloud_guard.list_security_policies,
+                compartment_id=self.__tenancy.id
+                    ).data
+                
+            for sz_policy in raw_sz_policies:
+                policy = {
+                    "category": sz_policy.category,
+                    "compartment_id": sz_policy.compartment_id,
+                    "defined_tags": sz_policy.defined_tags,
+                    "description": sz_policy.description,
+                    "display_name": sz_policy.display_name,
+                    "freeform_tags": sz_policy.freeform_tags,
+                    "friendly_name": sz_policy.friendly_name,
+                    "id": sz_policy.id,
+                    "lifecycle_details": sz_policy.lifecycle_details,
+                    "lifecycle_state": sz_policy.lifecycle_state,
+                    "owner": sz_policy.owner,
+                    "services": str(sz_policy.services),
+                    "system_tags": sz_policy.system_tags,
+                    "time_created": sz_policy.time_created,
+                    "time_updated": sz_policy.time_updated
+                    }
+                
+                self.__security_zone_policies.append(policy)
+            print_to_csv_file('security_zone_policies', self.__security_zone_policies)
+        except Exception as e:
+            raise RuntimeError("Failed to get security zone policies" + str(e.args))
 
 ##########################################################################
 # Main
