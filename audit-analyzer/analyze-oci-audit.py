@@ -208,7 +208,7 @@ class analyze_audit:
         for batch in batches:
             compartment_str = '/_Audit" "'.join(batch)
             compartment_str = "\"" + compartment_str + "/_Audit\""
-            search_query = "search " + compartment_str + """ | data.identity.principalId = '""" + user_ocid + """' and data.identity.tenantId = '""" + tenancy_ocid + """' | select type, data.identity.principalId, data.compartmentId, data.compartmentName, data.identity.ipAddress, data.identity.principalName, data.eventName, data.resourceId, data.identity.userAgent, datetime """
+            search_query = "search " + compartment_str + """ | data.identity.principalId = '""" + user_ocid + """' and data.identity.tenantId = '""" + tenancy_ocid + """' | select type, data.identity.principalId, data.compartmentId, data.compartmentName, data.identity.ipAddress, data.identity.principalName, data.eventName, data.resourceId, data.identity.userAgent, datetime, id """
             
             query_list.append(search_query)
 
@@ -273,6 +273,7 @@ class analyze_audit:
                         print("\t Found " + str(audit_logs.summary.result_count) + " audit events")
                         for result in audit_logs.results:
                             userInfo = {
+                                        "id" : result.data["id"],
                                         "type" : result.data["type"],
                                         "time" : datetime.fromtimestamp(result.data["datetime"]/1000.0).strftime('%Y-%m-%d %H:%M:%S.%f'), # converting epoch time
                                         "principalName" : result.data["data.identity.principalName"], 
