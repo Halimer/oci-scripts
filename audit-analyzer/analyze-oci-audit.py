@@ -208,7 +208,7 @@ class analyze_audit:
         for batch in batches:
             compartment_str = '/_Audit" "'.join(batch)
             compartment_str = "\"" + compartment_str + "/_Audit\""
-            search_query = "search " + compartment_str + """ | data.identity.principalId = '""" + user_ocid + """' and data.identity.tenantId = '""" + tenancy_ocid + """' | select type, data.identity.principalId, data.compartmentId, data.compartmentName, data.identity.ipAddress, data.identity.principalName, data.eventName, data.resourceId, data.identity.userAgent, datetime, id """
+            search_query = "search " + compartment_str + """ | data.identity.principalId = '""" + user_ocid + """' and data.identity.tenantId = '""" + tenancy_ocid + """' | select type, data.identity.principalId, data.compartmentId, data.compartmentName, data.identity.ipAddress, data.identity.principalName, data.eventName, data.resourceId, data.identity.userAgent, datetime, id, data.identity.credentials """
             
             query_list.append(search_query)
 
@@ -278,6 +278,7 @@ class analyze_audit:
                                         "time" : datetime.fromtimestamp(result.data["datetime"]/1000.0).strftime('%Y-%m-%d %H:%M:%S.%f'), # converting epoch time
                                         "principalName" : result.data["data.identity.principalName"], 
                                         "principalId" : result.data["data.identity.principalId"], 
+                                        "credentials" : result.data["data.identity.credentials"],
                                         "compartmentId" : result.data["data.compartmentId"], 
                                         "compartmentName" : result.data["data.compartmentName"], 
                                         "ipAddress" : result.data["data.identity.ipAddress"], 
