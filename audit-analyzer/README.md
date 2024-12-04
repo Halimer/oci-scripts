@@ -4,7 +4,7 @@ This directory contains useful script for querying OCI Audit data for a user's a
 
 ## Installaltion 
 1. Download the python script:
-```wget https://raw.githubusercontent.com/Halimer/oci-scripts/master/oci-scripts/audit-analyzer/analyze-oci-audit.py```
+```wget https://raw.githubusercontent.com/Halimer/oci-scripts/refs/heads/master/audit-analyzer/analyze-oci-audit.py```
 1. Create a virtual environment:
 ```python3 -m venv oci_scripts_venv```
 1. Source the environment:

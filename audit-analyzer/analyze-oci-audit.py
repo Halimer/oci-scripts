@@ -3,6 +3,7 @@ from fileinput import filename
 import os, oci, dateutil, datetime, argparse, csv, pytz
 from datetime import timedelta, date, datetime
 from threading import Thread
+import json
 
 # Credentials created before this date need to be rotated
 EPOCH = dateutil.parser.parse('2022-01-19T18:45:00.000+00:00')
@@ -196,6 +197,7 @@ class analyze_audit:
             thread.join()
 
         self.print_to_csv_file(self.__tenancy.name, "audit-log", self.__audit_records)
+        self.print_to_json_file(self.__tenancy.name, "audit-log", self.__audit_records)
 
     def __build_compartment_search_queries(self, user_ocid, tenancy_ocid):
         num_batches = (len(self.__compartments) + self.__batch_size - 1) // self.__batch_size
@@ -295,6 +297,22 @@ class analyze_audit:
             print("Exception is : " + str(e))
 
     ##########################################################################
+    # Get output file path with suffix
+    ##########################################################################
+    def __get_output_file_path(self, header, file_subject, suffix):
+        try:
+            # Creating report directory
+            if not os.path.isdir(self.__report_directory):
+                os.mkdir(self.__report_directory)
+
+        except Exception as e:
+            raise Exception(f'Error in creating report directory: {str(e.args)}')
+
+        file_name = f'{header}_{file_subject}'
+        file_name = f'{file_name.replace(" ", "_").replace(".", "-").replace("_-_", "_")}{suffix}'
+        return os.path.join(self.__report_directory, f'{self.__report_prefix}{file_name}')
+
+    ##########################################################################
     # Print to CSV
     ##########################################################################
     def print_to_csv_file(self, tenancy_name, file_subject, data):
@@ -337,6 +355,36 @@ class analyze_audit:
         except Exception as e:
             raise Exception("Error in print_to_csv_file: " + str(e.args))
 
+    ##########################################################################
+    # Print to JSON
+    ##########################################################################
+    def print_to_json_file(self, tenancy_name, file_subject, data):
+
+        try:
+            # if no data
+            if len(data) == 0:
+                return None
+            
+            # get the file name of the JSON
+            file_name = tenancy_name + "_" + file_subject + "_" + self.__current_datetime_str
+            file_name = (file_name.replace(" ", "_")).replace(".", "-") + ".json"
+            file_path = os.path.join(file_name)
+            # Serializing JSON to string
+            json_object = json.dumps(data, indent=4)
+          
+            # If this flag is set all OCIDs are Hashed to redact them
+            # Writing to json file
+            with open(file_path, mode='w', newline='') as json_file:
+                json_file.write(json_object)
+            
+            print("JSON: " + file_subject.ljust(22) + " --> " + file_path)
+            
+            # Used by Upload
+            return file_path
+        
+        except Exception as e:
+            raise Exception("Error in print_to_json_file: " + str(e.args))
+    
     ##########################################################################
     # Load compartments
     ##########################################################################
