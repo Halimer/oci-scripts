@@ -84,9 +84,9 @@ class analyze_audit:
             start_date_str = str(dates['start_date'])
             end_date_str = str(dates['end_date'])
             start_time_dt =  datetime.strptime(start_date_str + "T00:00:00.000000Z", "%Y-%m-%dT%H:%M:%S.%fZ")
-            end_time_dt =  datetime.strptime(end_date_str + "T23:59:00.000000Z", "%Y-%m-%dT%H:%M:%S.%fZ")
+            end_time_dt =  datetime.strptime(end_date_str + "T23:59:59.000000Z", "%Y-%m-%dT%H:%M:%S.%fZ")
 
-            thread = Thread(target=self.__run_tenacy_logging_search_query, args=(start_time_dt, end_time_dt))
+            thread = Thread(target=self.__run_tenancy_logging_search_query, args=(start_time_dt, end_time_dt))
             threads.append(thread)
 
         print("Processing Audit Logs...")
@@ -119,7 +119,7 @@ class analyze_audit:
             start_date_str = str(dates['start_date'])
             end_date_str = str(dates['end_date'])
             start_time_dt =  datetime.strptime(start_date_str + "T00:00:00.000000Z", "%Y-%m-%dT%H:%M:%S.%fZ")
-            end_time_dt =  datetime.strptime(end_date_str + "T23:59:00.000000Z", "%Y-%m-%dT%H:%M:%S.%fZ")
+            end_time_dt =  datetime.strptime(end_date_str + "T23:59:59.000000Z", "%Y-%m-%dT%H:%M:%S.%fZ")
 
             thread = Thread(target=self.__run_userocid_logging_search_query, args=(start_time_dt, end_time_dt))
             threads.append(thread)
@@ -156,7 +156,7 @@ class analyze_audit:
     ##########################################################################
     # Orcehstration for Full Tenancy Audit Extraction
     ##########################################################################
-    def __run_tenacy_logging_search_query(self, query_start_time_dt, query_end_time_dt):
+    def __run_tenancy_logging_search_query(self, query_start_time_dt, query_end_time_dt):
         
         try:
             logging_search_client = oci.loggingsearch.LogSearchClient(config=self.__config,
@@ -416,7 +416,7 @@ def numOfDays(date1, date2):
     
 def get_date_ranges(start_date, end_date, date_ranges, chunk=4):
     days_between = numOfDays(start_date, end_date)
-    print("CHunk is: " + str(chunk))
+    print("Chunk is: " + str(chunk))
     if days_between > chunk:
             # print("Days between over 13 is: " + str(days_between))
             next_date = start_date + timedelta(days=chunk)
