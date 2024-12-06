@@ -187,24 +187,8 @@ class analyze_audit:
                         
                         print("\t Found " + str(audit_logs.summary.result_count) + " audit events")
                         for result in audit_logs.results:
-                            record = {
-                                        "id" : result.data["id"],
-                                        "type" : result.data["type"],
-                                        "time" : datetime.fromtimestamp(result.data["datetime"]/1000.0).strftime('%Y-%m-%d %H:%M:%S.%f'), # converting epoch time
-                                        "principalName" : result.data["data.identity.principalName"], 
-                                        "principalId" : result.data["data.identity.principalId"], 
-                                        "credentials" : result.data["data.identity.credentials"],
-                                        "compartmentId" : result.data["data.compartmentId"], 
-                                        "compartmentName" : result.data["data.compartmentName"], 
-                                        "ipAddress" : result.data["data.identity.ipAddress"], 
-                                        "principalName" : result.data["data.identity.principalName"],  
-                                        "eventName" : result.data["data.eventName"], 
-                                        "resourceId" : result.data["data.resourceId"], 
-                                        "userAgent" : result.data["data.identity.userAgent"], 
-                                        "tenancy" : self.__tenancy.id}
-
-                            # print(userInfo)
-                            #Convert Dict to JSON String
+                            record = result.data
+                            record = oci.util.to_dict(record)
                             json_object = json.dumps(record)
                             # Writing record to file
                             log_file.write(json_object + ",\n")
@@ -246,24 +230,24 @@ class analyze_audit:
                         
                         print("\t Found " + str(audit_logs.summary.result_count) + " audit events")
                         for result in audit_logs.results:
-                            userInfo = {
-                                        "id" : result.data["id"],
-                                        "type" : result.data["type"],
-                                        "time" : datetime.fromtimestamp(result.data["datetime"]/1000.0).strftime('%Y-%m-%d %H:%M:%S.%f'), # converting epoch time
-                                        "principalName" : result.data["data.identity.principalName"], 
-                                        "principalId" : result.data["data.identity.principalId"], 
-                                        "credentials" : result.data["data.identity.credentials"],
-                                        "compartmentId" : result.data["data.compartmentId"], 
-                                        "compartmentName" : result.data["data.compartmentName"], 
-                                        "ipAddress" : result.data["data.identity.ipAddress"], 
-                                        "principalName" : result.data["data.identity.principalName"],  
-                                        "eventName" : result.data["data.eventName"], 
-                                        "resourceId" : result.data["data.resourceId"], 
-                                        "userAgent" : result.data["data.identity.userAgent"], 
-                                        "tenancy" : self.__tenancy.id}
-
+                            # userInfo = {
+                            #             "id" : result.data["id"],
+                            #             "type" : result.data["type"],
+                            #             "time" : datetime.fromtimestamp(result.data["datetime"]/1000.0).strftime('%Y-%m-%d %H:%M:%S.%f'), # converting epoch time
+                            #             "principalName" : result.data["data.identity.principalName"], 
+                            #             "principalId" : result.data["data.identity.principalId"], 
+                            #             "credentials" : result.data["data.identity.credentials"],
+                            #             "compartmentId" : result.data["data.compartmentId"], 
+                            #             "compartmentName" : result.data["data.compartmentName"], 
+                            #             "ipAddress" : result.data["data.identity.ipAddress"], 
+                            #             "principalName" : result.data["data.identity.principalName"],  
+                            #             "eventName" : result.data["data.eventName"], 
+                            #             "resourceId" : result.data["data.resourceId"], 
+                            #             "userAgent" : result.data["data.identity.userAgent"], 
+                            #             "tenancy" : self.__tenancy.id}
+                            record = oci.util.to_dict(result)
                             # print(userInfo)
-                            self.__audit_records.append(userInfo)
+                            self.__audit_records.append(record)
                     if response.has_next_page:
                         page = response.next_page
                     else:
@@ -271,6 +255,8 @@ class analyze_audit:
     
         except Exception as e:
             print("Exception is : " + str(e))
+    
+    
     ##########################################################################
     # Print to CSV
     ##########################################################################
@@ -414,7 +400,7 @@ def numOfDays(date1, date2):
     else:
         return (date1-date2).days
     
-def get_date_ranges(start_date, end_date, date_ranges, chunk=4):
+def get_date_ranges(start_date, end_date, date_ranges, chunk=3):
     days_between = numOfDays(start_date, end_date)
     print("Chunk is: " + str(chunk))
     if days_between > chunk:
