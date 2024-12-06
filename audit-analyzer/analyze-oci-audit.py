@@ -230,21 +230,6 @@ class analyze_audit:
                         
                         print("\t Found " + str(audit_logs.summary.result_count) + " audit events")
                         for result in audit_logs.results:
-                            # userInfo = {
-                            #             "id" : result.data["id"],
-                            #             "type" : result.data["type"],
-                            #             "time" : datetime.fromtimestamp(result.data["datetime"]/1000.0).strftime('%Y-%m-%d %H:%M:%S.%f'), # converting epoch time
-                            #             "principalName" : result.data["data.identity.principalName"], 
-                            #             "principalId" : result.data["data.identity.principalId"], 
-                            #             "credentials" : result.data["data.identity.credentials"],
-                            #             "compartmentId" : result.data["data.compartmentId"], 
-                            #             "compartmentName" : result.data["data.compartmentName"], 
-                            #             "ipAddress" : result.data["data.identity.ipAddress"], 
-                            #             "principalName" : result.data["data.identity.principalName"],  
-                            #             "eventName" : result.data["data.eventName"], 
-                            #             "resourceId" : result.data["data.resourceId"], 
-                            #             "userAgent" : result.data["data.identity.userAgent"], 
-                            #             "tenancy" : self.__tenancy.id}
                             record = oci.util.to_dict(result)
                             # print(userInfo)
                             self.__audit_records.append(record)
