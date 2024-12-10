@@ -131,8 +131,13 @@ class analyze_audit:
         for thread in threads:
             thread.join()
 
-        self.print_to_csv_file(self.__tenancy.name, "audit-log", self.__audit_records)
-        self.print_to_json_file(self.__tenancy.name, "audit-log", self.__audit_records)
+        if self.__audit_records:
+            return True
+        else:
+            return False
+            # self.print_to_csv_file(self.__tenancy.name, "audit-log", self.__audit_records)
+            # self.print_to_json_file(self.__tenancy.name, "audit-log", self.__audit_records)
+
 
     ##########################################################################
     # Builds Searches for User OCID Search
@@ -161,7 +166,7 @@ class analyze_audit:
         try:
             logging_search_client = oci.loggingsearch.LogSearchClient(config=self.__config,
                                                                       signer=self.__signer,
-                                                                      timeout=10000, 
+                                                                      timeout=1000, 
                                                                       retry_strategy=self.__retry_strategy)
             print(str(query_start_time_dt))
             filename = self.__tenancy.name + "-" + "audit-" + \
@@ -211,10 +216,10 @@ class analyze_audit:
         try:
             logging_search_client = oci.loggingsearch.LogSearchClient(config=self.__config,
                                                                       signer=self.__signer,
-                                                                      timeout=10000, 
+                                                                      timeout=1000, 
                                                                       retry_strategy=self.__retry_strategy)
             for query in self.__query_list:
-
+                print(query)
                 page = None
                 while True:
                     response = logging_search_client.search_logs(
