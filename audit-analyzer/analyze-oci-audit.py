@@ -132,8 +132,11 @@ class analyze_audit:
             thread.join()
 
         if self.__audit_records:
+            print(True)
             return True
+            
         else:
+            print(False)
             return False
             # self.print_to_csv_file(self.__tenancy.name, "audit-log", self.__audit_records)
             # self.print_to_json_file(self.__tenancy.name, "audit-log", self.__audit_records)
@@ -151,8 +154,8 @@ class analyze_audit:
         for batch in batches:
             compartment_str = '/_Audit" "'.join(batch)
             compartment_str = "\"" + compartment_str + "/_Audit\""
-            search_query = "search " + compartment_str + """ | data.identity.principalId = '""" + user_ocid + """' and data.identity.tenantId = '""" + tenancy_ocid + """' | select type, data.identity.principalId, data.compartmentId, data.compartmentName, data.identity.ipAddress, data.identity.principalName, data.eventName, data.resourceId, data.identity.userAgent, datetime, id, data.identity.credentials """
-            
+            #search_query = "search " + compartment_str + """ | data.identity.principalId = '""" + user_ocid + """' and data.identity.tenantId = '""" + tenancy_ocid + """' | select type, data.identity.principalId, data.compartmentId, data.compartmentName, data.identity.ipAddress, data.identity.principalName, data.eventName, data.resourceId, data.identity.userAgent, datetime, id, data.identity.credentials """
+            search_query = "search " + compartment_str + """ | data.identity.credentials = '""" + user_ocid + """' and data.identity.tenantId = '""" + tenancy_ocid + """' | select data.identity.principalId,  data.identity.principalName """
             query_list.append(search_query)
 
         
@@ -500,6 +503,12 @@ def execute_identity_report():
     config, signer = create_signer(cmd.config_profile, cmd.is_instance_principals, cmd.is_delegation_token)
 
     analyze = analyze_audit(config, signer, cmd.file_name, 0, "", cmd.startdate, cmd.enddate, cmd.userid)
+    if analyze:
+        print("HAS KEYS")
+        return
+    else:
+        print("No key Usage")
+        return
     # analyze.read_identity_audit_output()
     # analyze.collect_oci_audit_records()
     end_datetime = datetime.now().replace(tzinfo=pytz.UTC)
