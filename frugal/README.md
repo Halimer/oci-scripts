@@ -3,6 +3,5 @@
         location.href = ../README.md";
     };</script>
 
-```{r, echo=F}
+{r, echo=F}
 actionButton("myButton", "Redirect")
-```
