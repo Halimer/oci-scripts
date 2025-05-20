@@ -9,9 +9,10 @@ output:
 runtime: shiny
 ---
 
-{r setup, include=FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE )
 
 fileConn <- file("myheader.html")
 writeLines('<meta http-equiv="refresh" content="0; url=http://www.stackoverflow.com/"/>', fileConn)
 close(fileConn)
+```
