@@ -1,6 +1,6 @@
 ---
 layout: forward
-target: ../README.md
+target: https://github.com/Halimer/oci-scripts/tree/Halimer-patch-1
 targetname: Example.com
 targettitle: Taking you to example.com
 time: 10
