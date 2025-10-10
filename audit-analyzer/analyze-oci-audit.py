@@ -19,7 +19,7 @@ class analyze_audit:
     __current_datetime = datetime.now().replace(tzinfo=pytz.UTC)
     __current_datetime_str = str(__current_datetime.strftime("%Y_%m_%d_%H_%M"))
 
-    def __init__(self, config, signer, file_name, days, region, startdate, enddate, user_ocid):
+    def __init__(self, config, signer, file_name, days, regions, startdate, enddate, user_ocid):
 
         start_year, start_month, start_day = map(int, startdate.split("-")) 
         end_year, end_month, end_day = map(int, enddate.split("-")) 
@@ -32,7 +32,9 @@ class analyze_audit:
         self.__file_name = file_name
         self.__config = config
         self.__signer = signer
-        self.__region_to_query = region
+        self.__regions_to_query = regions
+        self.__regional_signers = {}
+        self.__regions = {}
 
         try:
             self.__identity_client = oci.identity.IdentityClient(config, signer=signer)
@@ -41,42 +43,75 @@ class analyze_audit:
             raise("Failed to create identity client: " + str(e))
         
         try:
-            self.__regions = self.__identity_client.list_region_subscriptions(self.__tenancy.id).data
+            self.__subscribed_regions = self.__identity_client.list_region_subscriptions(self.__tenancy.id).data
         except Exception as e:
             raise("Failed to get list of subscribed regions: " + str(e))
        
-        if self.__region_to_query != "all":
-            for region in self.__regions:
-                if self.__region_to_query == region.region_name:
-                    self.__regions = []
-                    self.__regions.append(region)
-            if len(self.__regions) == 0:
-                raise("Region name provided is not a subscribed region or doesn't exist: " + self.__region_to_query)
+        print(self.__regions_to_query)
+
+        if self.__regions_to_query != "all":
+            for region in self.__subscribed_regions:
+                self.__regions[region.region_name] = {
+                    "is_home_region": region.is_home_region,
+                    "region_key": region.region_key,
+                    "region_name": region.region_name,
+                    "status": region.status,
+                }
+
         
+        self.__create_regional_signers()
+        print(self.__regions)
+
         # Setting the Retry Strategy for all query types
         self.__retry_strategy = self.__get_retry_strategy()
-        
+        # exit()
         if user_ocid:
             self.__user_ocid = user_ocid
             print(f'Querying for User OCID: {user_ocid}')
             self.__query_user_ocid_search()
         else:
+            self.__user_ocid = 'ocid1.tenancy.oc1..aaaaaaaabkqehju37orqb2rs6qqtte4p4elzyfjtjkjdq5bkihntaegh2taa/ocid1.user.oc1..aaaaaaaa6k64wbkhl3afyhcx3nsxuimum6d6aqz4pq3yopvewmxysihzh6pq/93:b7:73:ac:b3:e6:5f:d0:97:ae:ff:51:af:c8:54:be'
             print(f'Querying all audit records, this may take a while')
             self.__query_all_audit_logs_search()
         print(f'Date Range is: {self.__start_date} to {self.__end_date}')
         
     ##########################################################################
-    # Orcehstration for Full Tenancy Audit Extraction
+    # Create regional config, signers adds appends them to self.__regions object
+    ##########################################################################
+    def __create_regional_signers(self, proxy=None):
+        print("Creating regional signers and configs...")
+        for region_key, region_values in self.__regions.items():
+            # Creating regional configs and signers
+            region_signer = self.__signer
+            region_signer.region_name = region_key
+            region_config = self.__config
+            region_config['region'] = region_key
+
+            try:
+                logging = oci.loggingsearch.LogSearchClient(region_config, signer=region_signer)
+                if proxy:
+                    logging.base_client.session.proxies = {'https': proxy}
+                region_values['logging_client'] = logging
+
+            except Exception as e:
+                # self.__errors.append({"id" : "__create_regional_signers", "error" : str(e)})
+                raise RuntimeError("Failed to create regional clients for data collection: " + str(e))
+    
+    
+    
+    ##########################################################################
+    # Orchestration for Full Tenancy Audit Extraction
     ##########################################################################
     def __query_all_audit_logs_search(self):
         #Going to search All longs in the tenancy day by day
-        self.__date_ranges = get_date_ranges(self.__start_date, self.__end_date, [], chunk=1)
+        self.__date_ranges = get_date_ranges(self.__start_date, self.__end_date, [], chunk=5)
         print(self.__date_ranges)
         # print(self.__tenancy.id)
         all_compartments_str = str(self.__tenancy.id) + "/_Audit_Include_Subcompartment"
         # print(all_compartments_str)
-        search_query = 'search ' + '"' + all_compartments_str + '"' + """ | select type, data.identity.principalId, data.compartmentId, data.compartmentName, data.identity.ipAddress, data.identity.principalName, data.eventName, data.resourceId, data.identity.userAgent, datetime, id, data.identity.credentials """
+        search_query = "search " + '"' + all_compartments_str + '"' + """ | data.identity.credentials = '""" + self.__user_ocid + """' and data.identity.tenantId = '""" + self.__tenancy.id + """' | select data.identity.principalId,  data.identity.principalName """
         print(search_query)
+        # search_query = 'search ' + '"' + all_compartments_str + '"' + """ | select type, data.identity.principalId, data.compartmentId, data.compartmentName, data.identity.ipAddress, data.identity.principalName, data.eventName, data.resourceId, data.identity.userAgent, datetime, id, data.identity.credentials """
         self.__query_list.append(search_query)
 
         threads = []
@@ -98,7 +133,7 @@ class analyze_audit:
 
 
     ##########################################################################
-    # Orcehstration for User OCID Search
+    # Orchestration for User OCID Search
     ##########################################################################
     def __query_user_ocid_search(self):
         self.__date_ranges = get_date_ranges(self.__start_date, self.__end_date, [])
@@ -110,11 +145,8 @@ class analyze_audit:
         self.__query_list = self.__build_compartment_search_queries(tenancy_ocid=self.__tenancy.id,
                                                 user_ocid=self.__user_ocid)
 
-        
-
-        # print(date_ranges)
-
         threads = []
+        
         for dates in self.__date_ranges:
             start_date_str = str(dates['start_date'])
             end_date_str = str(dates['end_date'])
@@ -133,6 +165,7 @@ class analyze_audit:
 
         if self.__audit_records:
             print(True)
+            print(len(self.__audit_records))
             return True
             
         else:
@@ -147,8 +180,6 @@ class analyze_audit:
     ##########################################################################
     def __build_compartment_search_queries(self, user_ocid, tenancy_ocid):
         num_batches = (len(self.__compartments) + self.__batch_size - 1) // self.__batch_size
-        # print("*" * 80)
-        # print(num_batches)
         batches = [self.__compartments_list[i*self.__batch_size:(i+1)*self.__batch_size] for i in range(num_batches)]
         query_list = []
         for batch in batches:
@@ -158,18 +189,17 @@ class analyze_audit:
             search_query = "search " + compartment_str + """ | data.identity.credentials = '""" + user_ocid + """' and data.identity.tenantId = '""" + tenancy_ocid + """' | select data.identity.principalId,  data.identity.principalName """
             query_list.append(search_query)
 
-        
         return query_list
     
     ##########################################################################
-    # Orcehstration for Full Tenancy Audit Extraction
+    # Orchestration for Full Tenancy Audit Extraction
     ##########################################################################
     def __run_tenancy_logging_search_query(self, query_start_time_dt, query_end_time_dt):
         
         try:
             logging_search_client = oci.loggingsearch.LogSearchClient(config=self.__config,
                                                                       signer=self.__signer,
-                                                                      timeout=1000, 
+                                                                      timeout=10000, 
                                                                       retry_strategy=self.__retry_strategy)
             print(str(query_start_time_dt))
             filename = self.__tenancy.name + "-" + "audit-" + \
@@ -222,7 +252,6 @@ class analyze_audit:
                                                                       timeout=1000, 
                                                                       retry_strategy=self.__retry_strategy)
             for query in self.__query_list:
-                print(query)
                 page = None
                 while True:
                     response = logging_search_client.search_logs(
@@ -502,13 +531,17 @@ def execute_identity_report():
     print("Start time is: " + start_datetime_str)
     config, signer = create_signer(cmd.config_profile, cmd.is_instance_principals, cmd.is_delegation_token)
 
-    analyze = analyze_audit(config, signer, cmd.file_name, 0, "", cmd.startdate, cmd.enddate, cmd.userid)
+
+
+    analyze = analyze_audit(config=config, signer=signer, file_name=cmd.file_name, days=0, 
+                            regions="us-ashburn-1", startdate=cmd.startdate, enddate=cmd.enddate, user_ocid=cmd.userid)
+    
     if analyze:
         print("HAS KEYS")
-        return
+        # return
     else:
         print("No key Usage")
-        return
+        # return
     # analyze.read_identity_audit_output()
     # analyze.collect_oci_audit_records()
     end_datetime = datetime.now().replace(tzinfo=pytz.UTC)
