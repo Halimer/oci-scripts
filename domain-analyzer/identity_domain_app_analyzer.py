@@ -492,8 +492,8 @@ class analyze_audit:
         self.__identity_read_compartments()
         self.__identity_read_domains()
         self.__identity_domain_read_apps()
-        self.print_to_csv_file(tenancy_name="test",
-                               file_subject="test",
+        self.print_to_csv_file(tenancy_name=self.__tenancy.name,
+                               file_subject="domain_analysis",
                                data=self.__domain_list_csv)
 
 ##########################################################################
