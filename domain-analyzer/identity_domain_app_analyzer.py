@@ -468,6 +468,7 @@ class analyze_audit:
                     "domain_name" : domain['display_name'],
                     "display_name" : app.display_name,
                     "description" : app.description,
+                    "app_client_id" : app.name,
                     "app_client_type" : app.client_type,
                     "app_is_managed_app" : app.is_managed_app,
                     "app_is_o_auth_client" : app.is_o_auth_client,
@@ -591,6 +592,8 @@ def execute_identity_report():
 
     end_datetime = datetime.now().replace(tzinfo=pytz.UTC)
     end_datetime_str = str(end_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    print("End time is: " + end_datetime_str)
+    print(f"Total run time is: {(end_datetime - start_datetime)}")
 
 
 
