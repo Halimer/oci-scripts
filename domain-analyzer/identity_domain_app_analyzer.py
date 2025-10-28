@@ -424,7 +424,6 @@ class analyze_audit:
     # Identity Domains Helper function for pagination
     ##########################################################################
     def __identity_domains_get_all_results(self, func, args):
-                
         if "start_index" not in args:
             args['start_index'] = 1
         if "count" not in args:
@@ -433,9 +432,7 @@ class analyze_audit:
             args["filter"] = ''
         if "attribute_sets" not in args:
             args["attribute_sets"] = ['all']
-
         debug("__identity_domains_get_all_results: " + str(func.__name__) + " arguments are: " + str(args))
-
         result = func(start_index=args['start_index'],
                     count=args['count'],
                     filter=args['filter'],
@@ -458,9 +455,10 @@ class analyze_audit:
     ##########################################################################
     def __identity_domain_read_apps(self):
         for domain in self.__identity_domains:
+            print(f"\t Process Domain: {domain['url']}")
             apps = self.__identity_domains_get_all_results(
                 domain['IdentityDomainClient'].list_apps,
-                args={})
+                args={"attribute_sets": ['default']})
             for app in apps:
                 app_dict = oci.util.to_dict(app)
                 record = {
