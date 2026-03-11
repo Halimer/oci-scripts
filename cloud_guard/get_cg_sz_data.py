@@ -5,6 +5,10 @@ import oci
 import datetime
 import csv
 import os
+import json
+import io
+import sys
+from typing import Any, Dict, List
 
 
 ##########################################################################
@@ -69,35 +73,133 @@ def set_parser_arguments():
 # execute_report
 ##########################################################################
 def execute_report():
-
-    # Get Command Line Parser
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', default="", dest='config_profile', help='Config file section to use (tenancy profile)')
-    parser.add_argument('-p', default="", dest='proxy', help='Set Proxy (i.e. www-proxy-server.com:80) ')
-    parser.add_argument('-cg', default=False, dest='cg', help='Passing True, Gets all Cloud Guard: responders, detectors, problems, and recommendations')
-    parser.add_argument('-sz', default=False, dest='sz', help='Passing True, Gets all Security Zones policies:')
-
+    parser.add_argument('-t', '--profile', default="", dest='config_profile', help='Config file section to use (tenancy profile)')
+    parser.add_argument('-p', '--proxy', default="", dest='proxy', help='Set Proxy (i.e. www-proxy-server.com:80)')
     parser.add_argument('-ip', action='store_true', default=False, dest='is_instance_principals', help='Use Instance Principals for Authentication')
     parser.add_argument('-dt', action='store_true', default=False, dest='is_delegation_token', help='Use Delegation Token for Authentication')
+    parser.add_argument('--region', default="", dest='region', help='Optional region override')
+
+    subparsers = parser.add_subparsers(dest='command', required=True)
+    export_parser = subparsers.add_parser('export', help='Export Cloud Guard and/or Security Zones data')
+    export_parser.add_argument('target', choices=['cloud-guard', 'security-zones', 'all'])
+    export_parser.add_argument('--output', choices=['json', 'csv'], default=None, dest='output', help='Output format')
+    export_parser.add_argument('--output-file', default='', dest='output_file', help='Optional output file path')
+    export_parser.add_argument('--pretty', action='store_true', default=False, dest='pretty', help='Pretty print JSON output')
+
+    problem_parser = subparsers.add_parser('problem', help='Problem details workflows')
+    problem_subparsers = problem_parser.add_subparsers(dest='problem_command', required=True)
+    problem_get_parser = problem_subparsers.add_parser('get', help='Get one problem details record')
+    problem_get_parser.add_argument('--problem-ocid', required=True, dest='problem_ocid')
+    problem_get_parser.add_argument('--output', choices=['json', 'csv'], default=None, dest='output', help='Output format')
+    problem_get_parser.add_argument('--output-file', default='', dest='output_file', help='Optional output file path')
+    problem_get_parser.add_argument('--pretty', action='store_true', default=False, dest='pretty', help='Pretty print JSON output')
+    problem_list_parser = problem_subparsers.add_parser('list', help='Get all problem details records')
+    problem_list_parser.add_argument(
+        '--detector-name',
+        default='',
+        dest='detector_name',
+        help='Optional case-insensitive exact detector/problem name filter'
+    )
+    problem_list_parser.add_argument('--output', choices=['json', 'csv'], default=None, dest='output', help='Output format')
+    problem_list_parser.add_argument('--output-file', default='', dest='output_file', help='Optional output file path')
+    problem_list_parser.add_argument('--pretty', action='store_true', default=False, dest='pretty', help='Pretty print JSON output')
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        return
 
     cmd = parser.parse_args()
-    # Getting  Command line  arguments
-    # cmd = set_parser_arguments()
-    # if cmd is None:
-    #     pass
-    #     # return
-
-    # Identity extract compartments
     config, signer = create_signer(cmd.config_profile, cmd.is_instance_principals, cmd.is_delegation_token)
-    cg = Cloud_Guard_Data(config, signer, cmd.proxy)
-    
-    if cmd.cg:
-        cg.get_responders()
-        cg.get_detectors()
-        cg.get_problems()
-        cg.get_recommendations()
-    if cmd.sz:
-        cg.get_security_zone_policies()
+    if cmd.region:
+        config["region"] = cmd.region
+
+    def write_json_payload(payload):
+        json_text = json.dumps(payload, indent=2 if cmd.pretty else None, default=str)
+        if cmd.output_file:
+            with open(cmd.output_file, "w") as file_handle:
+                file_handle.write(json_text)
+                if not json_text.endswith("\n"):
+                    file_handle.write("\n")
+        else:
+            print(json_text)
+
+    def write_problem_csv_payload(payload):
+        fieldnames = [
+            "id", "detector_rule_id", "risk_level", "lifecycle_detail",
+            "resource_id", "resource_name", "resource_type", "region",
+            "time_first_detected", "time_last_detected", "sightings_count"
+        ]
+        records = [payload] if isinstance(payload, dict) else payload
+        rows = []
+        for record in records:
+            rows.append({
+                "id": record.get("id"),
+                "detector_rule_id": record.get("detector_rule_id"),
+                "risk_level": record.get("risk_level"),
+                "lifecycle_detail": record.get("lifecycle_detail"),
+                "resource_id": record.get("resource_id"),
+                "resource_name": record.get("resource_name"),
+                "resource_type": record.get("resource_type"),
+                "region": record.get("region"),
+                "time_first_detected": record.get("time_first_detected"),
+                "time_last_detected": record.get("time_last_detected"),
+                "sightings_count": len(record.get("sightings", []))
+            })
+
+        if cmd.output_file:
+            with open(cmd.output_file, mode='w', newline='') as csv_file:
+                writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+                writer.writeheader()
+                for row in rows:
+                    writer.writerow(row)
+        else:
+            output_buffer = io.StringIO()
+            writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in rows:
+                writer.writerow(row)
+            print(output_buffer.getvalue().rstrip())
+
+    if cmd.command == 'export':
+        cg = Cloud_Guard_Data(config, signer, cmd.proxy)
+        output_mode = cmd.output or 'csv'
+        if output_mode == 'csv':
+            if cmd.target in ('cloud-guard', 'all'):
+                cg.get_responders(write_csv=True)
+                cg.get_detectors(write_csv=True)
+                cg.get_problems(write_csv=True)
+                cg.get_recommendations(write_csv=True)
+            if cmd.target in ('security-zones', 'all'):
+                cg.get_security_zone_policies(write_csv=True)
+            return
+
+        payload = {}
+        if cmd.target in ('cloud-guard', 'all'):
+            payload["cloud_guard"] = {
+                "responders": cg.get_responders(write_csv=False),
+                "detectors": cg.get_detectors(write_csv=False),
+                "problems": cg.get_problems(write_csv=False),
+                "recommendations": cg.get_recommendations(write_csv=False)
+            }
+        if cmd.target in ('security-zones', 'all'):
+            payload["security_zones"] = {
+                "policies": cg.get_security_zone_policies(write_csv=False)
+            }
+        write_json_payload(payload)
+        return
+
+    cg_problem_details = CloudGuardProblemSightingDetails(config, signer, cmd.proxy)
+    output_mode = cmd.output or 'json'
+    if cmd.problem_command == 'get':
+        payload = cg_problem_details.get_problem_details(cmd.problem_ocid)
+    else:
+        payload = cg_problem_details.get_all_problems_details(cmd.detector_name)
+
+    if output_mode == 'csv':
+        write_problem_csv_payload(payload)
+    else:
+        write_json_payload(payload)
 
 
 
@@ -172,6 +274,144 @@ def create_signer(config_profile, is_instance_principals, is_delegation_token):
         return config, signer
 
 
+class CloudGuardProblemSightingDetails:
+    def __init__(self, config, signer, proxy=None):
+        self.__config = config
+        self.__signer = signer
+        self.__proxy = proxy
+        self.__identity = oci.identity.IdentityClient(self.__config, signer=self.__signer)
+        self.__cloud_guard = oci.cloud_guard.CloudGuardClient(self.__config, signer=self.__signer)
+
+        if self.__proxy:
+            self.__identity.base_client.session.proxies = {'https': self.__proxy}
+            self.__cloud_guard.base_client.session.proxies = {'https': self.__proxy}
+
+        self.__tenancy = self.__identity.get_tenancy(self.__config["tenancy"]).data
+
+    def _to_dict(self, obj: Any) -> Dict[str, Any]:
+        return oci.util.to_dict(obj) if obj is not None else {}
+
+    def _get_first_available_method(self, candidates: List[str]):
+        for method_name in candidates:
+            method = getattr(self.__cloud_guard, method_name, None)
+            if callable(method):
+                return method
+        raise AttributeError(
+            "None of the Cloud Guard methods were found: {0}".format(", ".join(candidates))
+        )
+
+    def _list_all(self, method_candidates: List[str], **kwargs) -> List[Dict[str, Any]]:
+        method = self._get_first_available_method(method_candidates)
+        response = oci.pagination.list_call_get_all_results(method, **kwargs).data
+        return [self._to_dict(item) for item in response]
+
+    def _call_single(self, method_candidates: List[str], **kwargs) -> Dict[str, Any]:
+        method = self._get_first_available_method(method_candidates)
+        response = method(**kwargs).data
+        return self._to_dict(response)
+
+    def get_problem_details(self, problem_ocid: str) -> Dict[str, Any]:
+        problem_record = self._call_single(
+            ["get_problem"],
+            problem_id=problem_ocid
+        )
+        if not problem_record:
+            return {}
+
+        compartment_id = problem_record.get("compartment_id")
+        if not compartment_id:
+            problem_record["sightings"] = []
+            return problem_record
+
+        sighting_summaries = self._list_all(
+            ["list_sightings"],
+            compartment_id=compartment_id,
+            problem_id=problem_ocid,
+            sort_by="timeCreated",
+            sort_order="DESC"
+        )
+
+        sightings = []
+        for sighting_summary in sighting_summaries:
+            sighting_id = sighting_summary.get("id")
+            if not sighting_id:
+                continue
+
+            try:
+                sighting_record = self._call_single(
+                    ["get_sighting"],
+                    sighting_id=sighting_id
+                )
+            except Exception:
+                sighting_record = dict(sighting_summary)
+
+            try:
+                impacted_resources = self._list_all(
+                    ["list_sighting_impacted_resources", "list_resource_profile_impacted_resources"],
+                    sighting_id=sighting_id
+                )
+            except Exception:
+                impacted_resources = self._list_all(
+                    ["list_resource_profile_impacted_resources"],
+                    resource_profile_id=problem_ocid
+                )
+
+            try:
+                endpoints = self._list_all(
+                    ["list_sighting_endpoints", "list_resource_profile_endpoints"],
+                    sighting_id=sighting_id
+                )
+            except Exception:
+                endpoints = self._list_all(
+                    ["list_resource_profile_endpoints"],
+                    resource_profile_id=problem_ocid
+                )
+
+            sighting_record["impacted_resources"] = impacted_resources
+            sighting_record["endpoints"] = endpoints
+            sightings.append(sighting_record)
+
+        problem_record["sightings"] = sightings
+        return problem_record
+
+    def _list_all_compartments(self) -> List[Any]:
+        compartments = oci.pagination.list_call_get_all_results(
+            self.__identity.list_compartments,
+            self.__tenancy.id
+        ).data
+        compartments.append(self.__tenancy)
+        return compartments
+
+    def get_all_problems_details(self, problem_name: str = "") -> List[Dict[str, Any]]:
+        results = []
+        normalized_problem_name = (problem_name or "").strip().lower()
+
+        for compartment in self._list_all_compartments():
+            problems = self._list_all(
+                ["list_problems"],
+                compartment_id=compartment.id
+            )
+
+            for problem in problems:
+                if normalized_problem_name:
+                    searchable_fields = [
+                        str(problem.get("name", "")).strip().lower(),
+                        str(problem.get("display_name", "")).strip().lower(),
+                        str(problem.get("detector_rule_id", "")).strip().lower(),
+                        str(problem.get("resource_name", "")).strip().lower()
+                    ]
+                    if normalized_problem_name not in searchable_fields:
+                        continue
+
+                problem_ocid = problem.get("id")
+                if not problem_ocid:
+                    continue
+
+                results.append(self.get_problem_details(problem_ocid))
+
+        return results
+
+
 class Cloud_Guard_Data: 
     __compartments = []
     __problems = []
@@ -203,8 +443,9 @@ class Cloud_Guard_Data:
         except Exception as e:
                 raise RuntimeError("Failed to create service objects" + str(e.args))
 
-    def get_detectors(self):
+    def get_detectors(self, write_csv=True):
         try: 
+            self.__detectors = []
             raw_detectors = oci.pagination.list_call_get_all_results(
                 self.__cloud_guard.list_detectors,
                 compartment_id=self.__tenancy.id
@@ -236,12 +477,15 @@ class Cloud_Guard_Data:
                         "time_update" : str(rule.time_updated)
                     }
                     self.__detectors.append(cg_rule)
-            print_to_csv_file('all_detectors', self.__detectors)
+            if write_csv:
+                print_to_csv_file('all_detectors', self.__detectors)
+            return self.__detectors
         except Exception as e:
             raise RuntimeError("Failed to get detectors" + str(e.args))
         
-    def get_responders(self):
+    def get_responders(self, write_csv=True):
             try: 
+                self.__responders = []
                 raw_responders = oci.pagination.list_call_get_all_results(
                     self.__cloud_guard.list_responder_rules,
                     compartment_id=self.__tenancy.id
@@ -264,12 +508,23 @@ class Cloud_Guard_Data:
                         "time_update" : str(rule.time_updated)
                     }
                     self.__responders.append(cg_rule)
-                print_to_csv_file('all_responders', self.__responders)
+                if write_csv:
+                    print_to_csv_file('all_responders', self.__responders)
+                return self.__responders
             except Exception as e:
                 raise RuntimeError("Failed to get detectors" + str(e.args))
     
-    def get_recommendations(self):
+    
+    def get_problem(self, problem_id:str):
+        try: 
+            pass
+        except Exception as e:
+            raise RuntimeError(f"Failed to get Problem: {problem_id}" + str(e.args))
+
+  
+    def get_recommendations(self, write_csv=True):
             try: 
+                self.__recommendations = []
                 raw_recommendations = oci.pagination.list_call_get_all_results(
                     self.__cloud_guard.list_recommendations,   
                     compartment_id=self.__tenancy.id
@@ -283,13 +538,16 @@ class Cloud_Guard_Data:
                         "time_update" : str(recommendations.time_updated)
                     }
                     self.__recommendations.append(cg_recommendations)
-                print_to_csv_file('all_recommendations', self.__recommendations)
+                if write_csv:
+                    print_to_csv_file('all_recommendations', self.__recommendations)
+                return self.__recommendations
             except Exception as e:
                 raise RuntimeError("Failed to get recommendations" + str(e.args))
 
 
 
-    def get_problems(self):
+    def get_problems(self, write_csv=True):
+        self.__problems = []
         try: 
             # Getting all compartments in tenancy
             compartments = oci.pagination.list_call_get_all_results(
@@ -330,12 +588,15 @@ class Cloud_Guard_Data:
                     }
                     self.__problems.append(problem)
             
-            print_to_csv_file("all_problems", self.__problems)
+            if write_csv:
+                print_to_csv_file("all_problems", self.__problems)
+            return self.__problems
         except Exception as e:
             raise RuntimeError("Failed to get problems " + str(e.args))    
 
-    def get_security_zone_policies(self):
+    def get_security_zone_policies(self, write_csv=True):
         try: 
+            self.__security_zone_policies = []
             raw_sz_policies = oci.pagination.list_call_get_all_results(
                 self.__cloud_guard.list_security_policies,
                 compartment_id=self.__tenancy.id
@@ -361,7 +622,9 @@ class Cloud_Guard_Data:
                     }
                 
                 self.__security_zone_policies.append(policy)
-            print_to_csv_file('security_zone_policies', self.__security_zone_policies)
+            if write_csv:
+                print_to_csv_file('security_zone_policies', self.__security_zone_policies)
+            return self.__security_zone_policies
         except Exception as e:
             raise RuntimeError("Failed to get security zone policies" + str(e.args))
 
