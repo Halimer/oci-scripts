@@ -17,14 +17,17 @@ This directory contains useful script for querying OCI Audit data for a user's a
 ### Running on Local Machine
 1. Source the environment:
 ```source oci_scripts_venv/bin/activate```
-1. Run the script:
+1. Run the script for a single user's log records:
 ```python3 analyze-oci-audit.py --startdate 2024-12-02 --enddate 2024-12-03 --userid ocid1.user.oc1..```
-
+1. Run the script for all log records:
+```python3 analyze-oci-audit.py --startdate 2024-12-02 --enddate 2024-12-03```
 
 ### Running in Cloud Shell
 1. Source the environment:
 ```source oci_scripts_venv/bin/activate```
-1. Run the script:
+1. Run the script for a single user's log records:
+```python3 analyze-oci-audit.py -dt --startdate 2024-12-02 --enddate 2024-12-03 --userid ocid1.user.oc1..```
+1. Run the script for all log records:
 ```python3 analyze-oci-audit.py -dt --startdate 2024-12-02 --enddate 2024-12-03 --userid ocid1.user.oc1..```
 
 ## Output
