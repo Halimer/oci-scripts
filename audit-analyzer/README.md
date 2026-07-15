@@ -1,6 +1,8 @@
 # OCI Audit Analyzer 
 This directory contains useful script for querying OCI Audit data for a user's activity during a date range and outputs the activities into a CSV file. 
 
+This script may take some time to run, especially across larger date ranges or tenancies with more audit activity. For best results, run it from a local machine instead of Cloud Shell.
+
 
 ## Installaltion 
 1. Download the python script:
@@ -28,7 +30,7 @@ This directory contains useful script for querying OCI Audit data for a user's a
 1. Run the script for a single user's log records:
 ```python3 analyze-oci-audit.py -dt --startdate 2024-12-02 --enddate 2024-12-03 --userid ocid1.user.oc1..```
 1. Run the script for all log records:
-```python3 analyze-oci-audit.py -dt --startdate 2024-12-02 --enddate 2024-12-03 --userid ocid1.user.oc1..```
+```python3 analyze-oci-audit.py -dt --startdate 2024-12-02 --enddate 2024-12-03```
 
 ## Output
 ### CLI Output
