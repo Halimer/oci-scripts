@@ -19,7 +19,7 @@ class analyze_audit:
     __current_datetime = datetime.now().replace(tzinfo=pytz.UTC)
     __current_datetime_str = str(__current_datetime.strftime("%Y_%m_%d_%H_%M"))
 
-    def __init__(self, config, signer, file_name, days, region, startdate, enddate, user_ocid):
+    def __init__(self, config, signer, file_name, days, region, startdate, enddate, user_ocid, allfields=True):
 
         start_year, start_month, start_day = map(int, startdate.split("-")) 
         end_year, end_month, end_day = map(int, enddate.split("-")) 
@@ -60,6 +60,9 @@ class analyze_audit:
             self.__user_ocid = user_ocid
             print(f'Querying for User OCID: {user_ocid}')
             self.__query_user_ocid_search()
+        elif allfields:
+            print(f'Querying all audit records and all fields, this will take a long time')
+            self.__query_all_the_field_audit_logs_search()      
         else:
             print(f'Querying all audit records, this may take a while')
             self.__query_all_audit_logs_search()
@@ -87,6 +90,38 @@ class analyze_audit:
             end_time_dt =  datetime.strptime(end_date_str + "T23:59:59.000000Z", "%Y-%m-%dT%H:%M:%S.%fZ")
 
             thread = Thread(target=self.__run_tenancy_logging_search_query, args=(start_time_dt, end_time_dt))
+            threads.append(thread)
+
+        print("Processing Audit Logs...")
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+    ##########################################################################
+    # Orcehstration for Full Tenancy Audit Extraction
+    ##########################################################################
+    def __query_all_the_field_audit_logs_search(self):
+        #Going to search All longs in the tenancy day by day
+        self.__date_ranges = get_date_ranges(self.__start_date, self.__end_date, [], chunk=1)
+        print(self.__date_ranges)
+        # print(self.__tenancy.id)
+        all_compartments_str = str(self.__tenancy.id) + "/_Audit_Include_Subcompartment" 
+        # print(all_compartments_str)
+        fields = "| select type, id, datetime, data.actorDisplayName, data.actorId, data.actorName, data.actorOcid, data.auditEventMapValue, data.clientIp, data.domainDisplayName, data.domainId, data.domainName, data.ecId, data.eventId, data.idcsCreatedBy.value, data.idcsLastModifiedBy.value, data.meta.created, data.meta.lastModified, data.meterAsOPCService, data.ssoApplicationId, data.ssoApplicationName, data.ssoApplicationType, data.ssoIdentityProvider, data.ssoIdentityProviderType, data.ssoMatchedSignOnPolicy, data.ssoRp, data.timestamp, data.compartmentId"
+        search_query = 'search ' + '"' + all_compartments_str + '"' 
+        print(search_query)
+        self.__query_list.append(search_query)
+
+        threads = []
+        for dates in self.__date_ranges:
+            start_date_str = str(dates['start_date'])
+            end_date_str = str(dates['end_date'])
+            start_time_dt =  datetime.strptime(start_date_str + "T00:00:00.000000Z", "%Y-%m-%dT%H:%M:%S.%fZ")
+            end_time_dt =  datetime.strptime(end_date_str + "T23:59:59.000000Z", "%Y-%m-%dT%H:%M:%S.%fZ")
+
+            thread = Thread(target=self.__run_tenancy_logging_search_query, args=(start_time_dt, end_time_dt, 250))
             threads.append(thread)
 
         print("Processing Audit Logs...")
@@ -156,7 +191,7 @@ class analyze_audit:
     ##########################################################################
     # Orcehstration for Full Tenancy Audit Extraction
     ##########################################################################
-    def __run_tenancy_logging_search_query(self, query_start_time_dt, query_end_time_dt):
+    def __run_tenancy_logging_search_query(self, query_start_time_dt, query_end_time_dt, limit=1000):
         
         try:
             logging_search_client = oci.loggingsearch.LogSearchClient(config=self.__config,
@@ -180,7 +215,7 @@ class analyze_audit:
                             time_start=query_start_time_dt,
                             time_end=query_end_time_dt,
                             is_return_field_info=False),
-                        limit=1000,
+                        limit=limit,
                         page=page)
                     audit_logs = response.data
                     if audit_logs.summary.result_count > 0:
@@ -479,6 +514,7 @@ def execute_identity_report():
     parser.add_argument('-i', default="", dest='file_name', help='Currenlty not used')
     parser.add_argument('--startdate', default="", dest='startdate', required=True, help='Start Date example: 2024-09-01')
     parser.add_argument('--enddate', default="", dest='enddate', required=True, help='End Date example: 2024-10-10')
+    parser.add_argument('--allfields', action='store_true', default=False, dest='allfields', required=False, help='Gets all fields in the audit record only works without --userid')
     parser.add_argument('--userid', default="", dest='userid', help='User OCID example: ocid1.user.oc1..')
     # parser.add_argument('--region', default="all", dest='region', help='Region to query to a single region default is all regions.')
     parser.add_argument('-ip', action='store_true', default=False, dest='is_instance_principals', help='Use Instance Principals for Authentication')
@@ -494,7 +530,7 @@ def execute_identity_report():
     print("Start time is: " + start_datetime_str)
     config, signer = create_signer(cmd.config_profile, cmd.is_instance_principals, cmd.is_delegation_token)
 
-    analyze = analyze_audit(config, signer, cmd.file_name, 0, "", cmd.startdate, cmd.enddate, cmd.userid)
+    analyze = analyze_audit(config, signer, cmd.file_name, 0, "", cmd.startdate, cmd.enddate, cmd.userid, allfields=cmd.allfields)
     # analyze.read_identity_audit_output()
     # analyze.collect_oci_audit_records()
     end_datetime = datetime.now().replace(tzinfo=pytz.UTC)
