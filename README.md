@@ -3,6 +3,6 @@ This repo contains samples of python3 Oracle Cloud Infrastructure scripts.  Plea
 - [Oracle Cloud Guard Scripts](cloud_guard/README.md)
 - [OCI Audit Analyzer](audit-analyzer/README.md)
 - [OCI Frugal Scripts](frugal/README.md)
-
+- [Identity Domain App Analyzer](domain-analyzer/readme.md)
 
 
